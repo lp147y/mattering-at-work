@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mattering at Work — Week 1</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;600&display=swap');
+
+  :root {
+    --primary: #1a3a4a;
+    --accent: #e8a87c;
+    --accent2: #6db3a0;
+    --light: #f7f4ef;
+    --white: #ffffff;
+    --muted: #6b7280;
+    --border: #ddd8d0;
+    --locked-bg: #f0ede8;
+    --locked-border: #ccc8c0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: var(--light);
+    color: var(--primary);
+    line-height: 1.7;
+    font-size: 16px;
+  }
+
+  /* ── HEADER ── */
+  .campaign-header {
+    background: var(--primary);
+    color: white;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .campaign-header::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -60px;
+    width: 300px; height: 300px;
+    background: rgba(232,168,124,0.15);
+    border-radius: 50%;
+  }
+  .header-inner {
+    padding: 48px 32px 40px;
+    position: relative;
+    z-index: 1;
+  }
+  .campaign-badge {
+    display: inline-block;
+    background: rgba(232,168,124,0.25);
+    color: var(--accent);
+    border: 1px solid rgba(232,168,124,0.4);
+    padding: 4px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  .campaign-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .campaign-subtitle {
+    font-size: 15px;
+    color: rgba(255,255,255,0.65);
+    font-weight: 300;
+    margin-bottom: 24px;
+  }
+  .week-nav {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 16px 32px;
+    background: rgba(0,0,0,0.2);
+  }
+  .week-nav span {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.6);
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .week-nav span.active {
+    background: var(--accent);
+    color: var(--primary);
+    border-color: var(--accent);
+  }
+
+  /* ── PROGRESS STEPPER ── */
+  .stepper {
+    max-width: 860px;
+    margin: 40px auto 0;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+  .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
+  }
+  .step-line {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    margin-top: -18px;
+  }
+  .step-line.done { background: var(--accent2); }
+  .step-circle {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+    color: var(--muted);
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s;
+    flex-shrink: 0;
+  }
+  .step-circle.active {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: white;
+  }
+  .step-circle.done {
+    border-color: var(--accent2);
+    background: var(--accent2);
+    color: white;
+  }
+  .step-circle.locked {
+    border-color: var(--locked-border);
+    background: var(--locked-bg);
+    color: #aaa;
+  }
+  .step-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-top: 8px;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .step-label.active { color: var(--primary); }
+  .step-label.done { color: var(--accent2); }
+
+  /* ── MAIN WRAPPER ── */
+  .slides-wrapper {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+  }
+
+  /* ── MODULE BLOCKS ── */
+  .module-block {
+    margin-bottom: 40px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: all 0.4s;
+  }
+
+  /* LOCKED STATE */
+  .module-block.locked {
+    border-color: var(--locked-border);
+    background: var(--locked-bg);
+    opacity: 0.7;
+  }
+  .module-block.locked .slide-card {
+    display: none;
+  }
+  .locked-overlay {
+    display: none;
+    padding: 40px;
+    text-align: center;
+  }
+  .module-block.locked .locked-overlay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .lock-icon {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.06);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+  }
+  .locked-overlay h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: #888;
+  }
+  .locked-overlay p {
+    font-size: 14px;
+    color: #aaa;
+    max-width: 300px;
+  }
+
+  /* UNLOCKED STATE */
+  .module-block.unlocked {
+    background: white;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  .module-block.unlocked .locked-overlay { display: none; }
+
+  /* COMPLETE STATE */
+  .module-block.completed {
+    background: white;
+    border-color: var(--accent2);
+    box-shadow: 0 2px 12px rgba(109,179,160,0.15);
+  }
+  .module-block.completed .locked-overlay { display: none; }
+
+  /* ── COMPLETION BANNER ── */
+  .completion-banner {
+    background: rgba(109,179,160,0.08);
+    border-top: 1px solid rgba(109,179,160,0.3);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #1a5a46;
+    font-weight: 600;
+  }
+  .completion-banner.hidden { display: none; }
+
+  /* ── MODULE HEADER ── */
+  .module-header-bar {
+    padding: 14px 24px;
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .module-block.completed .module-header-bar {
+    background: var(--accent2);
+  }
+  .module-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .module-num {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+  .module-title-bar {
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .module-status-badge {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+  .badge-active { background: rgba(255,255,255,0.2); color: white; }
+  .badge-done { background: rgba(255,255,255,0.3); color: white; }
+
+  /* ── SLIDE CONTENT ── */
+  .slide-card { background: white; }
+  .slide-header {
+    padding: 28px 32px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .slide-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .icon-warm { background: rgba(232,168,124,0.18); }
+  .icon-teal { background: rgba(109,179,160,0.18); }
+  .icon-blue { background: rgba(74,144,226,0.12); }
+  .slide-header-text h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 21px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 4px;
+  }
+  .slide-tag {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .slide-body { padding: 28px 32px; }
+
+  /* ── COMPONENTS ── */
+  .quote-block {
+    background: var(--light);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+    padding: 18px 22px;
+    margin: 20px 0;
+  }
+  .quote-block p {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-style: italic;
+    line-height: 1.6;
+  }
+  .quote-block cite {
+    display: block;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 14px;
+    margin: 20px 0;
+  }
+  @media (max-width: 500px) { .stats-row { grid-template-columns: 1fr; } }
+  .stat-card {
+    background: var(--primary);
+    color: white;
+    border-radius: 12px;
+    padding: 18px;
+    text-align: center;
+  }
+  .stat-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-label { font-size: 12px; color: rgba(255,255,255,0.75); line-height: 1.4; }
+
+  .definition-box {
+    background: linear-gradient(135deg,rgba(26,58,74,0.04),rgba(109,179,160,0.08));
+    border: 1px solid rgba(109,179,160,0.3);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 20px 0;
+  }
+  .def-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 8px;
+  }
+  .def-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    line-height: 1.5;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 20px 0;
+  }
+  @media (max-width: 560px) { .two-col { grid-template-columns: 1fr; } }
+  .pillar-card {
+    background: var(--light);
+    border-radius: 12px;
+    padding: 18px;
+    border: 1px solid var(--border);
+  }
+  .pillar-icon { font-size: 26px; margin-bottom: 8px; }
+  .pillar-card h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .pillar-card p { font-size: 13px; color: #444; line-height: 1.5; }
+
+  /* FLIP CARDS */
+  .flip-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+    gap: 14px;
+    margin: 20px 0;
+  }
+  .flip-card { height: 155px; cursor: pointer; perspective: 1000px; }
+  .flip-card-inner {
+    position: relative; width: 100%; height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.4,0,0.2,1);
+  }
+  .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+  .flip-front, .flip-back {
+    position: absolute; width: 100%; height: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 12px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 14px; text-align: center;
+  }
+  .flip-front { background: var(--primary); color: white; }
+  .flip-front .flip-emoji { font-size: 26px; margin-bottom: 8px; }
+  .flip-front p { font-size: 13px; font-weight: 600; line-height: 1.4; }
+  .flip-front .tap-hint { font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 8px; }
+  .flip-back { background: var(--accent); color: var(--primary); transform: rotateY(180deg); }
+  .flip-back p { font-size: 12px; line-height: 1.5; }
+
+  /* REFLECTION */
+  .reflection-box {
+    background: var(--light);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin: 20px 0;
+  }
+  .reflection-label {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 14px;
+  }
+  .reflection-label::before { content: '✦'; color: var(--accent); font-size: 13px; }
+  .reflection-label span {
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--accent2);
+  }
+  .reflection-box > p { font-size: 15px; color: var(--primary); margin-bottom: 14px; }
+
+  /* REFLECTION CHECKBOXES */
+  .reflection-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .reflection-item:last-of-type { border-bottom: none; }
+  .ref-check {
+    width: 24px; height: 24px;
+    border-radius: 6px;
+    border: 2px solid var(--border);
+    background: white;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+    transition: all 0.2s;
+    font-size: 13px; font-weight: 700; color: transparent;
+  }
+  .ref-check.checked {
+    background: var(--accent2);
+    border-color: var(--accent2);
+    color: white;
+  }
+  .ref-text { font-size: 15px; line-height: 1.6; color: #333; }
+
+  /* VIGNETTE */
+  .vignette-box {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 20px 0;
+  }
+  .vignette-header {
+    background: var(--primary);
+    color: white;
+    padding: 12px 22px;
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 600; font-size: 13px;
+  }
+  .vignette-body { padding: 22px; }
+  .vignette-body p { font-size: 15px; line-height: 1.7; color: #333; margin-bottom: 14px; }
+  .vignette-question {
+    background: rgba(232,168,124,0.12);
+    border: 1px solid rgba(232,168,124,0.3);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 15px; font-weight: 500;
+    color: var(--primary); margin-top: 14px;
+  }
+  .vignette-options { display: grid; gap: 10px; margin-top: 14px; }
+  .vignette-option {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer; transition: all 0.2s;
+    background: white; text-align: left;
+  }
+  .vignette-option:hover { border-color: var(--accent); background: rgba(232,168,124,0.05); }
+  .vignette-option.selected { border-color: var(--accent2); background: rgba(109,179,160,0.08); }
+  .vignette-option.selected .opt-letter { background: var(--accent2); color: white; }
+  .opt-letter {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--light); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    flex-shrink: 0; transition: all 0.2s; color: var(--primary);
+  }
+  .opt-text { font-size: 14px; line-height: 1.5; color: #333; padding-top: 3px; }
+  .vignette-feedback {
+    margin-top: 14px; padding: 14px 18px;
+    border-radius: 10px; font-size: 14px; line-height: 1.6;
+    display: none;
+  }
+  .vignette-feedback.show { display: block; }
+  .feedback-good { background: rgba(109,179,160,0.12); border: 1px solid rgba(109,179,160,0.3); color: #1a4a3a; }
+  .feedback-consider { background: rgba(232,168,124,0.12); border: 1px solid rgba(232,168,124,0.3); color: #6b3a10; }
+
+  /* ── COMPLETE BUTTON ── */
+  .complete-section {
+    padding: 24px 32px;
+    border-top: 1px solid var(--border);
+    background: var(--light);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .progress-hint {
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+  }
+  .progress-hint strong { color: var(--primary); }
+  .progress-bar-outer {
+    width: 100%;
+    max-width: 400px;
+    height: 6px;
+    background: var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--accent2);
+    border-radius: 10px;
+    transition: width 0.4s ease;
+  }
+  .complete-btn {
+    padding: 12px 32px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .complete-btn.ready {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .complete-btn.ready:hover { background: #0f2535; transform: translateY(-1px); }
+  .complete-btn:active { transform: scale(0.98); }
+
+  /* ── UNLOCK ANIMATION ── */
+  @keyframes unlockPulse {
+    0% { box-shadow: 0 0 0 0 rgba(109,179,160,0.4); }
+    70% { box-shadow: 0 0 0 12px rgba(109,179,160,0); }
+    100% { box-shadow: 0 0 0 0 rgba(109,179,160,0); }
+  }
+  .just-unlocked { animation: unlockPulse 0.8s ease; }
+
+  /* ── WEEK COMPLETE BANNER ── */
+  .week-complete-card {
+    display: none;
+    background: var(--primary);
+    border-radius: 16px;
+    padding: 40px 36px;
+    text-align: center;
+    margin-top: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .week-complete-card.show { display: block; }
+  .week-complete-card::before {
+    content: '';
+    position: absolute;
+    top: -30px; right: -30px;
+    width: 180px; height: 180px;
+    background: rgba(232,168,124,0.1);
+    border-radius: 50%;
+  }
+  .week-complete-card h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    color: var(--accent);
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .week-complete-card p {
+    font-size: 15px;
+    color: rgba(255,255,255,0.8);
+    max-width: 460px;
+    margin: 0 auto 24px;
+    line-height: 1.7;
+    position: relative;
+  }
+  .next-badge {
+    display: inline-block;
+    background: rgba(232,168,124,0.2);
+    border: 1px solid rgba(232,168,124,0.4);
+    color: var(--accent);
+    padding: 8px 24px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 600;
+    position: relative;
+  }
+
+  .body-text { font-size: 16px; line-height: 1.75; color: #333; margin-bottom: 16px; }
+  .highlight-text { color: var(--primary); font-weight: 600; }
+  .spacer-sm { height: 14px; }
+  .tag-pill {
+    display: inline-block;
+    background: rgba(109,179,160,0.15);
+    color: var(--accent2);
+    border: 1px solid rgba(109,179,160,0.3);
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 12px; font-weight: 600;
+    margin-right: 6px; margin-bottom: 6px;
+  }
+
+  .campaign-footer {
+    background: var(--primary);
+    color: rgba(255,255,255,0.6);
+    text-align: center;
+    padding: 28px 20px;
+    font-size: 13px;
+  }
+  .campaign-footer strong { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="campaign-header">
+  <div class="header-inner">
+    <div class="campaign-badge">University of Glasgow · School of Biodiversity, One Health &amp; Veterinary Medicine</div>
+    <h1 class="campaign-title">Mattering at Work</h1>
+    <p class="campaign-subtitle">6-week wellbeing campaign · Based on Zach Mercurio's <em>The Power of Mattering</em></p>
+  </div>
+  <nav class="week-nav">
+    <span class="active">Week 1</span>
+    <span>Week 2</span>
+    <span>Week 3</span>
+    <span>Week 4</span>
+    <span>Week 5</span>
+    <span>Week 6</span>
+  </nav>
+</header>
+
+<!-- ── PROGRESS STEPPER ── -->
+<div class="stepper" id="stepper">
+  <div class="step">
+    <div class="step-circle active" id="sc1">1</div>
+    <div class="step-label active" id="sl1">Module 1</div>
+  </div>
+  <div class="step-line" id="line1"></div>
+  <div class="step">
+    <div class="step-circle locked" id="sc2">🔒</div>
+    <div class="step-label" id="sl2">Module 2</div>
+  </div>
+  <div class="step-line" id="line2"></div>
+  <div class="step">
+    <div class="step-circle locked" id="sc3">🔒</div>
+    <div class="step-label" id="sl3">Module 3</div>
+  </div>
+</div>
+
+<!-- ── MAIN CONTENT ── -->
+<main class="slides-wrapper">
+
+  <!-- ════════ MODULE 1 ════════ -->
+  <div class="module-block unlocked" id="module1">
+    <div class="module-header-bar">
+      <div class="module-header-left">
+        <span class="module-num">Module 1 of 3</span>
+        <span class="module-title-bar">What Does It Mean to Matter?</span>
+      </div>
+      <span class="module-status-badge badge-active" id="badge1">In progress</span>
+    </div>
+
+    <div class="slide-card">
+      <div class="slide-header">
+        <div class="slide-icon icon-warm">🌱</div>
+        <div class="slide-header-text">
+          <span class="slide-tag">Foundation · Core Concept</span>
+          <h3>The Fundamental Human Need You May Have Overlooked</h3>
+        </div>
+      </div>
+      <div class="slide-body">
+
+        <div style="margin-bottom:24px;">
+          <p style="font-size:13px;font-weight:600;letter-spacing:0.5px;color:var(--muted);margin-bottom:12px;">▶ &nbsp; Before you read — take 90 seconds to hear Zach Mercurio explain why mattering matters.</p>
+          <a href="https://www.youtube.com/shorts/fMw9exFJdtY" target="_blank" rel="noopener"
+            style="display:flex;align-items:center;gap:20px;background:var(--primary);border-radius:12px;padding:20px 24px;text-decoration:none;transition:opacity 0.2s;"
+            onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+            <div style="width:52px;height:52px;background:#FF0000;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+            </div>
+            <div>
+              <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:white;margin-bottom:4px;">The Power of Mattering at Work</div>
+              <div style="font-size:13px;color:rgba(255,255,255,0.6);">Zach Mercurio · Harvard Business Review · 1 min 25 sec · Opens on YouTube</div>
+            </div>
+            <div style="margin-left:auto;color:rgba(255,255,255,0.4);font-size:20px;">↗</div>
+          </a>
+        </div>
+
+        <p class="body-text">We spend a substantial part of our adult lives at work — often around one third of our time. For those of us in veterinary medicine and academia, work is not merely a job — it is a vocation bound up with our sense of purpose, identity, and contribution. Yet many of us, at some point, have arrived at work and wondered quietly: <span class="highlight-text">Does anything of what I do make a difference? Does anyone notice?</span></p>
+
+        <div class="quote-block">
+          <p>"Mattering is the fundamental human need to feel significant — to know that we are noticed, that we are important to others, and that we make a difference."</p>
+          <cite>— Zach Mercurio, <em>The Power of Mattering</em> (2024)</cite>
+        </div>
+
+        <p class="body-text">Psychologist Morris Rosenberg and colleagues helped establish the concept of mattering in the early 1980s, describing it as the feeling that we are significant to others — that we are noticed, important, cared about, and that our views count. Unlike confidence, which can feel individual, mattering is fundamentally relational. We do not matter in isolation; we matter to someone — within our families, teams, communities and organisations.</p>
+
+        <div class="definition-box" style="border-color:rgba(232,168,124,0.4);background:linear-gradient(135deg,rgba(232,168,124,0.06),rgba(232,168,124,0.03));">
+          <div class="def-label" style="color:var(--accent);">The Mattering Deficit at Work</div>
+          <p class="body-text" style="margin-bottom:16px;">Nearly <strong>1 in 3</strong> workers report feeling invisible, and almost <strong>65%</strong> report feeling underappreciated. When people do not feel seen, heard, and valued, this is linked with disengagement, poorer wellbeing, and increased intention to leave.</p>
+          <div class="two-col" style="margin:0;">
+            <div style="background:rgba(26,58,74,0.05);border-radius:10px;padding:14px 16px;border:1px solid rgba(26,58,74,0.1);">
+              <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--primary);line-height:1;margin-bottom:6px;">~30%</div>
+              <div style="font-size:13px;color:#555;line-height:1.4;">of workers report feeling invisible at work</div>
+            </div>
+            <div style="background:rgba(26,58,74,0.05);border-radius:10px;padding:14px 16px;border:1px solid rgba(26,58,74,0.1);">
+              <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--primary);line-height:1;margin-bottom:6px;">~27%</div>
+              <div style="font-size:13px;color:#555;line-height:1.4;">report feeling ignored by those they work with</div>
+            </div>
+          </div>
+          <p style="font-size:12px;color:var(--muted);margin-top:14px;font-style:italic;">Source: Mercurio, Z. (2024). <em>The Power of Mattering.</em> MIT Press. Consequences include mental health effects, loneliness, disengagement, turnover, and reduced performance.</p>
+        </div>
+
+        <div class="definition-box">
+          <div class="def-label">Mattering — A Working Definition</div>
+          <p class="def-text">Mattering is both a <em>feeling</em> and a <em>fact</em>. It is the experience of knowing you are noticed, relied upon, and that your existence makes a genuine difference to the people around you and to the work itself.</p>
+        </div>
+
+        <p class="body-text">In academia, we often focus outward — our careers, our teaching, and our research impact. This campaign invites us to also look inward and sideways: at the culture we collectively create, and whether every person in our learning and working community feels noticed, valued, and significant.</p>
+
+        <!-- VIGNETTE -->
+        <div class="definition-box" style="border-color:rgba(232,168,124,0.4);background:linear-gradient(135deg,rgba(232,168,124,0.06),rgba(232,168,124,0.03));">
+          <div class="def-label" style="color:var(--accent);">A Moment of Invisibility — The Cleaning Worker</div>
+          <p class="body-text" style="margin-bottom:16px;font-style:italic;">Every morning, before the first surgery, a cleaning worker arrives to prepare the theatres and pre-op areas. They check that floors are spotless, clinical waste bins are ready, surfaces are disinfected to standard, spill kits are stocked. They know the theatre schedule — which procedures happen when, what each space needs to be ready. After each case, they deep clean thoroughly, dispose of hazardous waste safely, restock supplies, and reset the theatres and pre-op spaces for the next team.</p>
+          <p class="body-text" style="margin-bottom:16px;font-style:italic;">Throughout the day, they move through the hospital floors, keeping corridors clear, restocking supplies, managing spills, ensuring the environment is safe and organised for staff and patients. It's meticulous, essential work. Without it, theatre couldn't function — infections would climb, organisation would collapse, staff would waste time searching for supplies or cleaning up themselves.</p>
+          <p class="body-text" style="margin-bottom:16px;font-style:italic;">Yet during clinical meetings, case discussions, and team debriefs, the cleaning worker is never mentioned. Successful surgeries, smooth flow of cases, the safety of the environment — all of these depend on their labour. But their contribution is invisible.</p>
+          <p class="body-text" style="margin-bottom:16px;font-style:italic;">At the end of a long shift, the cleaning worker reflects: <strong><em>"I keep this place running. I know I do. But does anyone see it? Does anyone think of me as part of the team?"</em></strong></p>
+          <p class="body-text" style="font-style:italic;"><strong>This is the mattering deficit:</strong> essential work, genuine expertise, real care — but systematically unseen. When someone contributes meaningfully yet their contribution is never acknowledged or connected to shared outcomes, they slowly learn that they don't truly matter to the team.</p>
+        </div>
+
+        <!-- HOW MATTERING WORKS DIAGRAM -->
+        <svg width="100%" viewBox="0 0 680 400" role="img" xmlns="http://www.w3.org/2000/svg" style="margin: 32px 0; display: block;">
+          <title>How mattering works</title>
+          <desc>A diagram showing that feeling valued leads to adding value and meaningfulness, and together these generate motivation, resilience, wellbeing, and performance, with a feedback loop from adding value back to feeling valued.</desc>
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </marker>
+          </defs>
+
+          <!-- Title -->
+          <text x="340" y="32" text-anchor="middle" font-family="'Playfair Display', serif" font-size="17" fill="#1a3a4a" font-weight="700">How mattering works</text>
+
+          <!-- Box 1: Feeling valued -->
+          <rect x="60" y="110" width="200" height="76" rx="8" fill="#e1f5ee" stroke="#0f6e56" stroke-width="0.8"/>
+          <text x="160" y="141" text-anchor="middle" font-family="'Source Sans 3', sans-serif" font-size="14" font-weight="600" fill="#085041">Feeling valued</text>
+          <text x="160" y="161" text-anchor="middle" font-family="'Source Sans 3', sans-serif" font-size="12" fill="#0f6e56">Positive self-beliefs</text>
+          <text x="160" y="177" text-anchor="middle" font-family="'Source Sans 3', sans-serif" font-size="12" fill="#0f6e56">Positive relationships</text>
+
+          <!-- Box 2: Adding value -->
+          <rect x="420" y="110" width="200" height="76" rx="8" fill="#e1f5ee" stroke="#0f6e56" stroke-width="0.8"/>
+          <text x="520" y="141" text-anchor="middle" font-family="'Source Sans 3', sans-serif" font-size="14" font-weight="600" fill="#085041">Adding value</text>
+          <text x="520" y="163" text-anchor="middle" font-family="'Source Sans 3', sans-serif" font-size="12" fill="#0f6e56">Meaningfulness</text>
+
+          <!-- Box 3: Outcomes -->
+          <rect x="215" y="265" width="250" height="90" rx="8" fill="#faeeda" stroke="#854f0b" stroke-width="0.8"/>
+          <text x="340" y="283" text-anchor="middle" dominant-baseline="middle" font-family="'Source Sans 3', sans-serif" font-size="12" fill="#854f0b">Motivation</text>
+          <text x="340" y="299" text-anchor="middle" dominant-baseline="middle" font-family="'Source Sans 3', sans-serif" font-size="12" fill="#854f0b">Resilience</text>
+          <text x="340" y="315" text-anchor="middle" dominant-baseline="middle" font-family="'Source Sans 3', sans-serif" font-size="12" fill="#854f0b">Well-being</text>
+          <text x="340" y="331" text-anchor="middle" dominant-baseline="middle" font-family="'Source Sans 3', sans-serif" font-size="12" fill="#854f0b">Performance</text>
+
+          <!-- Arrow: Feeling valued → Adding value -->
+          <line x1="262" y1="148" x2="418" y2="148" stroke="#1a3a4a" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+          <!-- Dashed arrows → Outcomes -->
+          <path d="M160 186 L160 230 L340 230 L340 266" fill="none" stroke="#1a3a4a" stroke-width="1.2" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+          <path d="M520 186 L520 230 L340 230" fill="none" stroke="#1a3a4a" stroke-width="1.2" stroke-dasharray="5 4"/>
+
+          <!-- Feedback arc: Adding value → Feeling valued -->
+          <path d="M520 110 Q340 -10 160 110" fill="none" stroke="#C9A227" stroke-width="1.5" marker-end="url(#arrow)"/>
+        </svg>
+
+
+        <!-- REFLECTION WITH CHECKBOXES -->
+        <div class="reflection-box">
+          <div class="reflection-label"><span>Pause &amp; Reflect — tick each question as you consider it</span></div>
+          <p>Take a moment with these questions. You don't need to share your answers — this is for you.</p>
+
+          <div class="reflection-item" onclick="toggleCheck(this,'m1')" data-module="1">
+            <div class="ref-check" id="r1_1"></div>
+            <div class="ref-text">Think of a time at work when you felt you truly mattered. What made that moment different?</div>
+          </div>
+          <div class="reflection-item" onclick="toggleCheck(this,'m1')" data-module="1">
+            <div class="ref-check" id="r1_2"></div>
+            <div class="ref-text">Can you name a colleague who you suspect might be feeling invisible or overlooked right now?</div>
+
+          </div>
+          <div class="reflection-item" onclick="toggleCheck(this,'m1')" data-module="1">
+            <div class="ref-check" id="r1_3"></div>
+            <div class="ref-text">What would it mean for your team if every person genuinely felt they mattered?</div>
+          </div>
+        </div>
+
+        <div class="spacer-sm"></div>
+        <div>
+          <span class="tag-pill">Self-reflection</span>
+          <span class="tag-pill">Core concept</span>
+          <span class="tag-pill">Week 1</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- COMPLETE SECTION -->
+    <div class="complete-section">
+      <p class="progress-hint">Reflect on all three questions above to unlock <strong>Module 2</strong></p>
+      <div class="progress-bar-outer">
+        <div class="progress-bar-fill" id="prog1" style="width:0%"></div>
+      </div>
+      <button class="complete-btn" id="btn1" onclick="completeModule(1)">
+        ✓ &nbsp; Mark Module 1 Complete &amp; Unlock Next
+      </button>
+    </div>
+
+    <div class="completion-banner hidden" id="done1">
+      ✓ &nbsp; Module 1 complete — well done. Module 2 is now unlocked below.
+    </div>
+  </div>
+
+  <!-- ════════ MODULE 2 ════════ -->
+  <div class="module-block locked" id="module2">
+    <div class="locked-overlay">
+      <div class="lock-icon">🔒</div>
+      <h3>Module 2 — Locked</h3>
+      <p>Complete Module 1 above to unlock <em>The Three Pillars of Mattering: NAN</em>.</p>
+    </div>
+
+    <div class="module-header-bar" style="display:none" id="mh2">
+      <div class="module-header-left">
+        <span class="module-num">Module 2 of 3</span>
+        <span class="module-title-bar">The Three Pillars of Mattering: NAN</span>
+      </div>
+      <span class="module-status-badge badge-active" id="badge2">In progress</span>
+    </div>
+
+    <div class="slide-card" style="display:none" id="sc2content">
+      <div class="slide-header">
+        <div class="slide-icon icon-teal">🔍</div>
+        <div class="slide-header-text">
+          <span class="slide-tag">The Science · Three Dimensions</span>
+          <h3>Noticed, Affirmed, Needed: The Three Pillars of Mattering</h3>
+        </div>
+      </div>
+      <div class="slide-body">
+
+        <p class="body-text">Mercurio — building on Rosenberg's foundational work — describes mattering as resting on three distinct but interconnected pillars. He captures them in a simple, memorable framework: <span class="highlight-text">NAN</span>. Understanding each pillar is essential, because we can inadvertently satisfy one whilst completely neglecting the others.</p>
+
+        <div style="background:var(--primary);border-radius:14px;padding:28px 32px;margin:20px 0;">
+          <div style="font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:rgba(232,168,124,0.8);margin-bottom:20px;">The NAN Framework · Mercurio (2024)</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+            <div style="text-align:center;padding:20px 12px;background:rgba(255,255,255,0.06);border-radius:10px;border:1px solid rgba(255,255,255,0.1);">
+              <div style="font-family:'Playfair Display',serif;font-size:48px;font-weight:700;color:var(--accent);line-height:1;margin-bottom:12px;">N</div>
+              <div style="font-size:14px;font-weight:600;color:white;margin-bottom:8px;">Noticed</div>
+              <div style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.5;">Your presence is acknowledged. Your absence would be felt. You are not invisible in the room.</div>
+            </div>
+            <div style="text-align:center;padding:20px 12px;background:rgba(255,255,255,0.06);border-radius:10px;border:1px solid rgba(255,255,255,0.1);">
+              <div style="font-family:'Playfair Display',serif;font-size:48px;font-weight:700;color:var(--accent);line-height:1;margin-bottom:12px;">A</div>
+              <div style="font-size:14px;font-weight:600;color:white;margin-bottom:8px;">Affirmed</div>
+              <div style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.5;">Your contribution is valued. Your effort is recognised — specifically, not generically.</div>
+            </div>
+            <div style="text-align:center;padding:20px 12px;background:rgba(255,255,255,0.06);border-radius:10px;border:1px solid rgba(255,255,255,0.1);">
+              <div style="font-family:'Playfair Display',serif;font-size:48px;font-weight:700;color:var(--accent);line-height:1;margin-bottom:12px;">N</div>
+              <div style="font-size:14px;font-weight:600;color:white;margin-bottom:8px;">Needed</div>
+              <div style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.5;">Your presence is irreplaceable. The team genuinely depends on what only you bring.</div>
+            </div>
+          </div>
+        </div>
+
+        <p class="body-text">These three pillars are not the same thing — and a person can experience one without the others. A colleague can be <em>noticed</em> (everyone knows who they are) but not <em>affirmed</em> (their work is never specifically acknowledged) and not feel <em>needed</em> (they believe their role is dispensable). All three must be present for someone to genuinely feel they matter.</p>
+
+        <p class="body-text"><span class="highlight-text">Tap each card</span> to explore how failures across the three pillars show up in everyday veterinary and academic work.</p>
+
+        <div class="flip-cards-grid">
+          <div class="flip-card" onclick="this.classList.toggle('flipped')">
+            <div class="flip-card-inner">
+              <div class="flip-front"><div class="flip-emoji">📋</div><p>The ward round everyone forgets to brief</p><div class="tap-hint">tap to explore</div></div>
+              <div class="flip-back"><p>A nurse excluded from handover is not <em>noticed</em> as a key contributor, not <em>affirmed</em> for their expertise, and implicitly told they are not <em>needed</em> in that conversation.</p></div>
+            </div>
+          </div>
+          <div class="flip-card" onclick="this.classList.toggle('flipped')">
+            <div class="flip-card-inner">
+              <div class="flip-front"><div class="flip-emoji">📝</div><p>The research contribution uncredited</p><div class="tap-hint">tap to explore</div></div>
+              <div class="flip-back"><p>A technician who runs all the assays but whose name never appears on a paper may be socially noticed — but is neither <em>affirmed</em> nor made to feel <em>needed</em> beyond their technical function.</p></div>
+            </div>
+          </div>
+          <div class="flip-card" onclick="this.classList.toggle('flipped')">
+            <div class="flip-card-inner">
+              <div class="flip-front"><div class="flip-emoji">🎓</div><p>The student who sits at the back</p><div class="tap-hint">tap to explore</div></div>
+              <div class="flip-back"><p>A struggling student who is never called upon experiences a failure of being <em>noticed</em> — and without that, they will never feel <em>affirmed</em> or <em>needed</em> by their learning community.</p></div>
+            </div>
+          </div>
+          <div class="flip-card" onclick="this.classList.toggle('flipped')">
+            <div class="flip-card-inner">
+              <div class="flip-front"><div class="flip-emoji">🏃</div><p>The high performer who keeps leaving</p><div class="tap-hint">tap to explore</div></div>
+              <div class="flip-back"><p>Strong performers who leave despite good salaries often feel <em>noticed</em> for their output — but not genuinely <em>affirmed</em> as individuals, nor convinced they are truly <em>needed</em> rather than replaceable.</p></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="reflection-box">
+          <div class="reflection-label"><span>Team Exercise — tick each as you consider it</span></div>
+          <p>Think about the people in your immediate team. For each person, ask yourself:</p>
+          <div class="reflection-item" onclick="toggleCheck(this,'m2')" data-module="2">
+            <div class="ref-check" id="r2_1"></div>
+            <div class="ref-text"><strong>Noticed:</strong> Do I actively acknowledge this person — by name, with genuine attention — so they know their presence is seen?</div>
+          </div>
+          <div class="reflection-item" onclick="toggleCheck(this,'m2')" data-module="2">
+            <div class="ref-check" id="r2_2"></div>
+            <div class="ref-text"><strong>Affirmed:</strong> Have I told this person recently — specifically, not generically — why their contribution matters?</div>
+          </div>
+          <div class="reflection-item" onclick="toggleCheck(this,'m2')" data-module="2">
+            <div class="ref-check" id="r2_3"></div>
+            <div class="ref-text"><strong>Needed:</strong> Does this person know that what they bring is irreplaceable — that the team would genuinely feel their absence?</div>
+          </div>
+        </div>
+
+        <div class="spacer-sm"></div>
+        <div>
+          <span class="tag-pill">NAN</span>
+          <span class="tag-pill">Noticed · Affirmed · Needed</span>
+          <span class="tag-pill">Team culture</span>
+          <span class="tag-pill">Week 1</span>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="complete-section" style="display:none" id="cs2">
+      <p class="progress-hint">Reflect on all three questions above to unlock <strong>Module 3</strong></p>
+      <div class="progress-bar-outer">
+        <div class="progress-bar-fill" id="prog2" style="width:0%"></div>
+      </div>
+      <button class="complete-btn" id="btn2" onclick="completeModule(2)">
+        ✓ &nbsp; Mark Module 2 Complete &amp; Unlock Next
+      </button>
+    </div>
+
+    <div class="completion-banner hidden" id="done2">
+      ✓ &nbsp; Module 2 complete. Module 3 is now unlocked below.
+    </div>
+  </div>
+
+  <!-- ════════ MODULE 3 ════════ -->
+  <div class="module-block locked" id="module3">
+    <div class="locked-overlay">
+      <div class="lock-icon">🔒</div>
+      <h3>Module 3 — Locked</h3>
+      <p>Complete Modules 1 and 2 to unlock the <em>What Would You Do?</em> scenario.</p>
+    </div>
+
+    <div class="module-header-bar" style="display:none" id="mh3">
+      <div class="module-header-left">
+        <span class="module-num">Module 3 of 3</span>
+        <span class="module-title-bar">What Would You Do?</span>
+      </div>
+      <span class="module-status-badge badge-active" id="badge3">In progress</span>
+    </div>
+
+    <div class="slide-card" style="display:none" id="sc3content">
+      <div class="slide-header">
+        <div class="slide-icon icon-blue">🏥</div>
+        <div class="slide-header-text">
+          <span class="slide-tag">Scenario · Application</span>
+          <h3>Recognising Mattering Deficits: A Day in the Clinic</h3>
+        </div>
+      </div>
+      <div class="slide-body">
+
+        <p class="body-text">Mattering deficits — the gaps where people feel unseen or unimportant — often hide in plain sight. They rarely announce themselves dramatically. More often, they accumulate quietly through small, everyday omissions. This scenario explores one such moment.</p>
+
+        <div class="vignette-box">
+          <div class="vignette-header"><span>📖</span><span>Scenario: Monday Morning, Teaching Hospital</span></div>
+          <div class="vignette-body">
+            <p>Jamie is a veterinary nurse who has worked on your small animal medicine ward for three years. She is technically excellent, reliable, and genuinely committed to animal welfare. This morning, a new intern joins the team for the first time.</p>
+            <p>During the formal introduction, the consultant introduces the intern to every clinician by name, role, and a brief personal comment. When he reaches Jamie's section, he says broadly: <em>"And the nursing team are over here — they'll show you where everything is."</em> Jamie, who prepared a detailed orientation pack since last Friday, says nothing. She smiles. She shows the intern where things are.</p>
+            <p>Later, Jamie's request to attend a national veterinary nursing conference is declined due to "budget constraints" — though a senior clinician has just returned from an international congress.</p>
+            <div class="vignette-question">💬 What is happening here, and what might you do differently?</div>
+
+            <div class="vignette-options" id="vignette1">
+              <div class="vignette-option" onclick="selectOption(this,'vignette1','A')">
+                <div class="opt-letter">A</div>
+                <div class="opt-text">This is a normal workplace dynamic — nurses and clinicians have different roles and different development budgets. Jamie should raise it through HR if she's concerned.</div>
+              </div>
+              <div class="vignette-option" onclick="selectOption(this,'vignette1','B')">
+                <div class="opt-letter">B</div>
+                <div class="opt-text">The introduction erased Jamie's individuality and seniority. The budget decision compounded it. A leader who noticed would have named Jamie specifically, acknowledged her contribution, and advocated equally for her development.</div>
+              </div>
+              <div class="vignette-option" onclick="selectOption(this,'vignette1','C')">
+                <div class="opt-letter">C</div>
+                <div class="opt-text">Jamie should speak up more and advocate for herself — this is about her personal communication style rather than a systemic issue.</div>
+              </div>
+              <div class="vignette-option" onclick="selectOption(this,'vignette1','D')">
+                <div class="opt-letter">D</div>
+                <div class="opt-text">The conference refusal is a resourcing issue unrelated to mattering — these are two separate problems that shouldn't be linked.</div>
+              </div>
+            </div>
+
+            <div class="vignette-feedback feedback-good" id="vignette1-feedback-B">
+              <strong>Yes — this is the key insight.</strong> Both incidents, seemingly minor individually, communicate the same message: <em>you are interchangeable, not individual.</em> Jamie prepared for three days but was acknowledged as part of a faceless group. Her professional development was declined while others' was funded. A mattering-conscious leader names people specifically, acknowledges their expertise in front of others, and applies equitable scrutiny to development decisions across all roles. The cumulative message matters as much as any single incident.
+            </div>
+            <div class="vignette-feedback feedback-consider" id="vignette1-feedback-A">
+              <strong>Worth reconsidering.</strong> Framing this as "different roles have different norms" risks normalising invisible hierarchies. Mattering is a universal human need — it doesn't vary by job grade. The question is not whether HR should handle it, but whether we, as colleagues and leaders, are creating a culture where this should need to happen at all.
+            </div>
+            <div class="vignette-feedback feedback-consider" id="vignette1-feedback-C">
+              <strong>Worth reconsidering.</strong> Psychological safety research consistently shows that placing the burden of advocacy on the person being overlooked compounds the problem. Mercurio's work argues that <em>mattering is a leadership responsibility</em>, not an individual's personal project.
+            </div>
+            <div class="vignette-feedback feedback-consider" id="vignette1-feedback-D">
+              <strong>Worth reconsidering.</strong> While the two incidents are distinct, their effect on Jamie is cumulative. Mattering deficits are rarely delivered in one blow — they accumulate through patterns. The pattern here is consistent: Jamie's contributions and development are treated as lower priority. Separating the incidents misses the pattern.
+            </div>
+          </div>
+        </div>
+
+        <!-- COMPLETION REQUIREMENT: must answer vignette -->
+        <div class="reflection-box">
+          <div class="reflection-label"><span>Final Reflection — tick to confirm you've engaged</span></div>
+          <p>Before completing Week 1, confirm you have engaged with the scenario above:</p>
+          <div class="reflection-item" onclick="toggleCheck(this,'m3')" data-module="3">
+            <div class="ref-check" id="r3_1"></div>
+            <div class="ref-text">I have read the scenario and selected a response above.</div>
+          </div>
+          <div class="reflection-item" onclick="toggleCheck(this,'m3')" data-module="3">
+            <div class="ref-check" id="r3_2"></div>
+            <div class="ref-text">I can think of a real situation in my own work where a similar dynamic has played out.</div>
+          </div>
+          <div class="reflection-item" onclick="toggleCheck(this,'m3')" data-module="3">
+            <div class="ref-check" id="r3_3"></div>
+            <div class="ref-text">I have identified at least one thing I will do differently this week as a result of Week 1.</div>
+          </div>
+        </div>
+
+        <div class="definition-box">
+          <div class="def-label">Key Takeaway · Week 1</div>
+          <p class="def-text">Mattering is not a reward for performance or seniority. It is a baseline human need that every person on your team deserves — through being genuinely <em>noticed</em> and genuinely <em>valued</em>. The first step is learning to see where the gaps are.</p>
+        </div>
+
+        <div class="spacer-sm"></div>
+        <div>
+          <span class="tag-pill">Application</span>
+          <span class="tag-pill">Scenario</span>
+          <span class="tag-pill">Week 1</span>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="complete-section" style="display:none" id="cs3">
+      <p class="progress-hint">Tick all three reflections above to complete <strong>Week 1</strong></p>
+      <div class="progress-bar-outer">
+        <div class="progress-bar-fill" id="prog3" style="width:0%"></div>
+      </div>
+      <button class="complete-btn" id="btn3" onclick="completeModule(3)">
+        🎉 &nbsp; Complete Week 1
+      </button>
+    </div>
+
+    <div class="completion-banner hidden" id="done3">
+      🎉 &nbsp; Week 1 complete! Watch out for Week 2 in your inbox next week.
+    </div>
+  </div>
+
+  <!-- ════════ WEEK COMPLETE ════════ -->
+  <div class="week-complete-card" id="weekComplete">
+    <h2>Week 1 Complete</h2>
+    <p>You've taken the first step — understanding what mattering is and learning to see where its gaps lie. Next week we look at the everyday signals that communicate significance, and how to develop a mattering mindset in your daily interactions.</p>
+    <div class="next-badge">📬 Week 2 arrives in your inbox next week</div>
+  </div>
+
+</main>
+
+<footer class="campaign-footer">
+  <p><strong>Mattering at Work</strong> · 6-Week Campaign · School of Biodiversity, One Health &amp; Veterinary Medicine, University of Glasgow</p>
+  <p style="margin-top:6px;">School of Biodiversity, One Health &amp; Veterinary Medicine — Learning Environment Champions Initiative</p>
+
+  <div style="text-align:center;padding:16px 20px 0;border-top:1px solid rgba(255,255,255,0.08);margin-top:16px;">
+    <button onclick="resetProgress()" style="background:none;border:none;color:rgba(255,255,255,0.3);font-size:12px;cursor:pointer;font-family:'Source Sans 3',sans-serif;text-decoration:underline;padding:4px 8px;transition:color 0.2s;" onmouseover="this.style.color='rgba(255,255,255,0.6)'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">&#8635; Reset my progress</button>
+  </div>
+</footer>
+
+<script>
+  const STORAGE_KEY = 'mattering_w1';
+
+  // Track checks per module: {m1:[false,false,false], m2:..., m3:...}
+  let checks = { m1:[false,false,false], m2:[false,false,false], m3:[false,false,false] };
+  let completed = { 1:false, 2:false, 3:false };
+
+  // ── LOAD SAVED STATE ──
+  function loadState() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      if (saved.checks) checks = saved.checks;
+      if (saved.completed) completed = saved.completed;
+    } catch(e) {}
+  }
+
+  // ── SAVE STATE ──
+  function saveState() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ checks, completed }));
+  }
+
+  // ── APPLY STATE TO UI ──
+  function applyState() {
+    // Restore checkboxes
+    ['m1','m2','m3'].forEach((mk, mi) => {
+      const modNum = mi + 1;
+      checks[mk].forEach((val, idx) => {
+        const el = document.getElementById('r' + modNum + '_' + (idx+1));
+        if (el && val) el.classList.add('checked');
+      });
+      updateProgress(modNum);
+    });
+
+    // Unlock modules that were completed
+    if (completed[1]) {
+      markDone(1, false);
+      if (completed[2]) {
+        unlockModule(2, false);
+        markDone(2, false);
+        if (completed[3]) {
+          unlockModule(3, false);
+          markDone(3, false);
+          showWeekComplete(false);
+        } else {
+          unlockModule(3, false);
+        }
+      } else {
+        unlockModule(2, false);
+      }
+    }
+  }
+
+  // ── TOGGLE REFLECTION CHECKBOX ──
+  function toggleCheck(row, moduleKey) {
+    const check = row.querySelector('.ref-check');
+    const isChecked = check.classList.toggle('checked');
+    check.textContent = isChecked ? '✓' : '';
+
+    // Find which index this is in its module
+    const allItems = row.parentElement.querySelectorAll('.reflection-item');
+    const idx = Array.from(allItems).indexOf(row);
+    const modNum = parseInt(moduleKey.replace('m',''));
+
+    checks[moduleKey][idx] = isChecked;
+    saveState();
+    updateProgress(modNum);
+  }
+
+  // ── UPDATE PROGRESS BAR & BUTTON ──
+  function updateProgress(modNum) {
+    const mk = 'm' + modNum;
+    const done = checks[mk].filter(Boolean).length;
+    const total = checks[mk].length;
+    const pct = Math.round((done / total) * 100);
+
+    const prog = document.getElementById('prog' + modNum);
+    const btn = document.getElementById('btn' + modNum);
+    const hint = btn ? btn.previousElementSibling : null;
+
+    if (prog) prog.style.width = pct + '%';
+
+    if (btn) {
+      if (done === total) {
+        btn.classList.add('ready');
+        if (hint) hint.innerHTML = '<strong>All done!</strong> Click below to unlock the next module.';
+      } else {
+        btn.classList.remove('ready');
+        if (hint) {
+          const remaining = total - done;
+          const moduleKey = modNum < 3 ? 'Module ' + (modNum+1) : 'Week 1';
+          hint.innerHTML = `Reflect on <strong>${remaining} more question${remaining>1?'s':''}</strong> above to unlock <strong>${moduleKey}</strong>`;
+        }
+      }
+    }
+  }
+
+  // ── COMPLETE MODULE ──
+  function completeModule(modNum) {
+    const mk = 'm' + modNum;
+    if (!checks[mk].every(Boolean)) return;
+
+    completed[modNum] = true;
+    saveState();
+    markDone(modNum, true);
+
+    if (modNum < 3) {
+      setTimeout(() => unlockModule(modNum + 1, true), 300);
+    } else {
+      setTimeout(() => showWeekComplete(true), 300);
+    }
+  }
+
+  // ── MARK MODULE DONE ──
+  function markDone(modNum, animate) {
+    const mod = document.getElementById('module' + modNum);
+    const cs = document.getElementById('cs' + modNum);
+    const done = document.getElementById('done' + modNum);
+    const badge = document.getElementById('badge' + modNum);
+    const sc = document.getElementById('sc' + modNum);
+    const sl = document.getElementById('sl' + modNum);
+
+    mod.classList.add('completed');
+
+    if (cs) cs.style.display = 'none';
+    if (done) done.classList.remove('hidden');
+    if (badge) { badge.textContent = '✓ Complete'; badge.className = 'module-status-badge badge-done'; }
+    if (sc) { sc.textContent = '✓'; sc.className = 'step-circle done'; }
+    if (sl) { sl.textContent = 'Module ' + modNum; sl.className = 'step-label done'; }
+
+    // Line after this step
+    const line = document.getElementById('line' + modNum);
+    if (line) line.classList.add('done');
+  }
+
+  // ── UNLOCK MODULE ──
+  function unlockModule(modNum, animate) {
+    const mod = document.getElementById('module' + modNum);
+    const mh = document.getElementById('mh' + modNum);
+    const content = document.getElementById('sc' + modNum + 'content');
+    const cs = document.getElementById('cs' + modNum);
+    const sc = document.getElementById('sc' + modNum);
+    const sl = document.getElementById('sl' + modNum);
+
+    mod.classList.remove('locked');
+    mod.classList.add('unlocked');
+
+    if (mh) mh.style.display = 'flex';
+    if (content) content.style.display = 'block';
+    if (cs) cs.style.display = 'flex';
+
+    if (sc) { sc.textContent = modNum; sc.className = 'step-circle active'; }
+    if (sl) { sl.textContent = 'Module ' + modNum; sl.className = 'step-label active'; }
+
+    if (animate) {
+      mod.classList.add('just-unlocked');
+      setTimeout(() => mod.classList.remove('just-unlocked'), 1000);
+      mod.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  // ── SHOW WEEK COMPLETE ──
+  function showWeekComplete(animate) {
+    const card = document.getElementById('weekComplete');
+    card.classList.add('show');
+    if (animate) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // ── VIGNETTE SELECTION ──
+  function selectOption(el, vignetteId, letter) {
+    const container = document.getElementById(vignetteId);
+    container.querySelectorAll('.vignette-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    container.querySelectorAll('.vignette-feedback').forEach(f => f.classList.remove('show'));
+    const fb = document.getElementById(vignetteId + '-feedback-' + letter);
+    if (fb) fb.classList.add('show');
+  }
+
+  // ── INIT ──
+  loadState();
+  applyState();
+  updateProgress(1);
+  function resetProgress(){if(confirm('This will clear all your saved progress for this week and start fresh. Are you sure?')){localStorage.removeItem('mattering_w1');location.reload();}}
+</script>
+</body>
+</html>

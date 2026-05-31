@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mattering at Work — Week 5</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;600&display=swap');
+  :root{--primary:#1a3a4a;--accent:#e8a87c;--accent2:#6db3a0;--light:#f7f4ef;--muted:#6b7280;--border:#ddd8d0;--locked-bg:#f0ede8;--locked-border:#ccc8c0;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Source Sans 3',sans-serif;background:var(--light);color:var(--primary);line-height:1.7;font-size:16px;}
+  .campaign-header{background:var(--primary);color:white;text-align:center;position:relative;overflow:hidden;}
+  .campaign-header::before{content:'';position:absolute;top:-40px;right:-60px;width:300px;height:300px;background:rgba(232,168,124,0.15);border-radius:50%;}
+  .header-inner{padding:48px 32px 40px;position:relative;z-index:1;}
+  .campaign-badge{display:inline-block;background:rgba(232,168,124,0.25);color:var(--accent);border:1px solid rgba(232,168,124,0.4);padding:4px 16px;border-radius:20px;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-bottom:20px;}
+  .campaign-title{font-family:'Playfair Display',serif;font-size:clamp(28px,5vw,48px);font-weight:700;line-height:1.2;margin-bottom:8px;}
+  .campaign-subtitle{font-size:15px;color:rgba(255,255,255,0.65);font-weight:300;margin-bottom:24px;}
+  .week-nav{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;padding:16px 32px;background:rgba(0,0,0,0.2);}
+  .week-nav span{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.15);}
+  .week-nav span.active{background:var(--accent);color:var(--primary);border-color:var(--accent);}
+  .week-nav span.done{background:rgba(109,179,160,0.3);color:rgba(255,255,255,0.8);border-color:rgba(109,179,160,0.4);}
+  .stepper{max-width:860px;margin:40px auto 0;padding:0 20px;display:flex;align-items:center;}
+  .step{display:flex;flex-direction:column;align-items:center;flex:1;}
+  .step-line{flex:1;height:2px;background:var(--border);margin-top:-18px;}
+  .step-line.done{background:var(--accent2);}
+  .step-circle{width:36px;height:36px;border-radius:50%;border:2px solid var(--border);background:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--muted);position:relative;z-index:1;transition:all 0.3s;flex-shrink:0;}
+  .step-circle.active{border-color:var(--primary);background:var(--primary);color:white;}
+  .step-circle.done{border-color:var(--accent2);background:var(--accent2);color:white;}
+  .step-circle.locked{border-color:var(--locked-border);background:var(--locked-bg);color:#aaa;}
+  .step-label{font-size:11px;font-weight:600;color:var(--muted);margin-top:8px;text-align:center;white-space:nowrap;}
+  .step-label.active{color:var(--primary);} .step-label.done{color:var(--accent2);}
+  .slides-wrapper{max-width:860px;margin:0 auto;padding:40px 20px 80px;}
+  .module-block{margin-bottom:40px;border-radius:16px;overflow:hidden;border:1px solid var(--border);transition:all 0.4s;}
+  .module-block.locked{border-color:var(--locked-border);background:var(--locked-bg);opacity:0.7;}
+  .module-block.locked .slide-card{display:none;}
+  .locked-overlay{display:none;padding:40px;text-align:center;}
+  .module-block.locked .locked-overlay{display:flex;flex-direction:column;align-items:center;gap:12px;}
+  .lock-icon{width:56px;height:56px;border-radius:50%;background:rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;font-size:24px;}
+  .locked-overlay h3{font-family:'Playfair Display',serif;font-size:18px;color:#888;}
+  .locked-overlay p{font-size:14px;color:#aaa;max-width:300px;}
+  .module-block.unlocked{background:white;box-shadow:0 2px 12px rgba(0,0,0,0.08);}
+  .module-block.unlocked .locked-overlay{display:none;}
+  .module-block.completed{background:white;border-color:var(--accent2);box-shadow:0 2px 12px rgba(109,179,160,0.15);}
+  .module-block.completed .locked-overlay{display:none;}
+  .completion-banner{background:rgba(109,179,160,0.08);border-top:1px solid rgba(109,179,160,0.3);padding:12px 24px;display:flex;align-items:center;gap:10px;font-size:13px;color:#1a5a46;font-weight:600;}
+  .completion-banner.hidden{display:none;}
+  .module-header-bar{padding:14px 24px;background:var(--primary);color:white;display:flex;align-items:center;justify-content:space-between;}
+  .module-block.completed .module-header-bar{background:var(--accent2);}
+  .module-header-left{display:flex;align-items:center;gap:12px;}
+  .module-num{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;opacity:0.7;}
+  .module-title-bar{font-size:14px;font-weight:600;}
+  .module-status-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;}
+  .badge-active{background:rgba(255,255,255,0.2);color:white;}
+  .badge-done{background:rgba(255,255,255,0.3);color:white;}
+  .slide-card{background:white;}
+  .slide-header{padding:28px 32px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:16px;}
+  .slide-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+  .icon-warm{background:rgba(232,168,124,0.18);} .icon-teal{background:rgba(109,179,160,0.18);} .icon-blue{background:rgba(74,144,226,0.12);}
+  .slide-header-text h3{font-family:'Playfair Display',serif;font-size:21px;font-weight:700;line-height:1.3;margin-bottom:4px;}
+  .slide-tag{font-size:11px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);}
+  .slide-body{padding:28px 32px;}
+  .quote-block{background:var(--light);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;padding:18px 22px;margin:20px 0;}
+  .quote-block p{font-family:'Playfair Display',serif;font-size:17px;font-style:italic;line-height:1.6;}
+  .quote-block cite{display:block;margin-top:8px;font-size:12px;color:var(--muted);font-style:normal;font-weight:600;}
+  .definition-box{background:linear-gradient(135deg,rgba(26,58,74,0.04),rgba(109,179,160,0.08));border:1px solid rgba(109,179,160,0.3);border-radius:12px;padding:22px 26px;margin:20px 0;}
+  .def-label{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent2);margin-bottom:8px;}
+  .def-text{font-family:'Playfair Display',serif;font-size:18px;line-height:1.5;}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0;}
+  @media(max-width:560px){.two-col{grid-template-columns:1fr;}}
+  .pillar-card{background:var(--light);border-radius:12px;padding:18px;border:1px solid var(--border);}
+  .pillar-icon{font-size:26px;margin-bottom:8px;}
+  .pillar-card h4{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;margin-bottom:6px;}
+  .pillar-card p{font-size:13px;color:#444;line-height:1.5;}
+  .three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:20px 0;}
+  @media(max-width:640px){.three-col{grid-template-columns:1fr;}}
+  .info-card{background:var(--light);border-radius:12px;padding:18px;border:1px solid var(--border);}
+  .info-card .card-icon{font-size:24px;margin-bottom:8px;}
+  .info-card h4{font-size:14px;font-weight:600;margin-bottom:6px;}
+  .info-card p{font-size:13px;color:#555;line-height:1.5;}
+  .flip-cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:20px 0;}
+  .flip-card{height:155px;cursor:pointer;perspective:1000px;}
+  .flip-card-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform 0.55s cubic-bezier(0.4,0,0.2,1);}
+  .flip-card.flipped .flip-card-inner{transform:rotateY(180deg);}
+  .flip-front,.flip-back{position:absolute;width:100%;height:100%;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;text-align:center;}
+  .flip-front{background:var(--primary);color:white;}
+  .flip-front .flip-emoji{font-size:26px;margin-bottom:8px;}
+  .flip-front p{font-size:13px;font-weight:600;line-height:1.4;}
+  .flip-front .tap-hint{font-size:10px;color:rgba(255,255,255,0.45);margin-top:8px;}
+  .flip-back{background:var(--accent);color:var(--primary);transform:rotateY(180deg);}
+  .flip-back p{font-size:12px;line-height:1.5;}
+  .behaviour-list{display:grid;gap:12px;margin:20px 0;}
+  .behaviour-card{display:flex;gap:14px;padding:16px 18px;border:1px solid var(--border);border-radius:12px;background:white;align-items:flex-start;}
+  .behaviour-card.positive{border-left:4px solid var(--accent2);}
+  .beh-icon{font-size:20px;flex-shrink:0;margin-top:2px;}
+  .beh-body h4{font-size:14px;font-weight:600;margin-bottom:4px;}
+  .beh-body p{font-size:13px;color:var(--muted);line-height:1.5;}
+  .reflection-box{background:var(--light);border:1px solid var(--border);border-radius:12px;padding:24px 28px;margin:20px 0;}
+  .reflection-label{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .reflection-label::before{content:'✦';color:var(--accent);font-size:13px;}
+  .reflection-label span{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent2);}
+  .reflection-box>p{font-size:15px;color:var(--primary);margin-bottom:14px;}
+  .reflection-item{display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+  .reflection-item:last-of-type{border-bottom:none;}
+  .ref-check{width:24px;height:24px;border-radius:6px;border:2px solid var(--border);background:white;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all 0.2s;font-size:13px;font-weight:700;color:transparent;}
+  .ref-check.checked{background:var(--accent2);border-color:var(--accent2);color:white;}
+  .ref-text{font-size:15px;line-height:1.6;color:#333;}
+  .vignette-box{border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:20px 0;}
+  .vignette-header{background:var(--primary);color:white;padding:12px 22px;display:flex;align-items:center;gap:10px;font-weight:600;font-size:13px;}
+  .vignette-body{padding:22px;}
+  .vignette-body p{font-size:15px;line-height:1.7;color:#333;margin-bottom:14px;}
+  .vignette-question{background:rgba(232,168,124,0.12);border:1px solid rgba(232,168,124,0.3);border-radius:8px;padding:14px 18px;font-size:15px;font-weight:500;color:var(--primary);margin-top:14px;}
+  .vignette-options{display:grid;gap:10px;margin-top:14px;}
+  .vignette-option{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all 0.2s;background:white;text-align:left;}
+  .vignette-option:hover{border-color:var(--accent);background:rgba(232,168,124,0.05);}
+  .vignette-option.selected{border-color:var(--accent2);background:rgba(109,179,160,0.08);}
+  .vignette-option.selected .opt-letter{background:var(--accent2);color:white;}
+  .opt-letter{width:26px;height:26px;border-radius:50%;background:var(--light);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;transition:all 0.2s;color:var(--primary);}
+  .opt-text{font-size:14px;line-height:1.5;color:#333;padding-top:3px;}
+  .vignette-feedback{margin-top:14px;padding:14px 18px;border-radius:10px;font-size:14px;line-height:1.6;display:none;}
+  .vignette-feedback.show{display:block;}
+  .feedback-good{background:rgba(109,179,160,0.12);border:1px solid rgba(109,179,160,0.3);color:#1a4a3a;}
+  .feedback-consider{background:rgba(232,168,124,0.12);border:1px solid rgba(232,168,124,0.3);color:#6b3a10;}
+  .complete-section{padding:24px 32px;border-top:1px solid var(--border);background:var(--light);display:flex;flex-direction:column;align-items:center;gap:12px;}
+  .progress-hint{font-size:13px;color:var(--muted);text-align:center;}
+  .progress-hint strong{color:var(--primary);}
+  .progress-bar-outer{width:100%;max-width:400px;height:6px;background:var(--border);border-radius:10px;overflow:hidden;}
+  .progress-bar-fill{height:100%;background:var(--accent2);border-radius:10px;transition:width 0.4s ease;}
+  .complete-btn{padding:12px 32px;background:var(--primary);color:white;border:none;border-radius:10px;font-family:'Source Sans 3',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.2s;opacity:0.4;pointer-events:none;}
+  .complete-btn.ready{opacity:1;pointer-events:all;}
+  .complete-btn.ready:hover{background:#0f2535;transform:translateY(-1px);}
+  @keyframes unlockPulse{0%{box-shadow:0 0 0 0 rgba(109,179,160,0.4);}70%{box-shadow:0 0 0 12px rgba(109,179,160,0);}100%{box-shadow:0 0 0 0 rgba(109,179,160,0);}}
+  .just-unlocked{animation:unlockPulse 0.8s ease;}
+  .week-complete-card{display:none;background:var(--primary);border-radius:16px;padding:40px 36px;text-align:center;margin-top:20px;position:relative;overflow:hidden;}
+  .week-complete-card.show{display:block;}
+  .week-complete-card::before{content:'';position:absolute;top:-30px;right:-30px;width:180px;height:180px;background:rgba(232,168,124,0.1);border-radius:50%;}
+  .week-complete-card h2{font-family:'Playfair Display',serif;font-size:28px;color:var(--accent);margin-bottom:12px;position:relative;}
+  .week-complete-card p{font-size:15px;color:rgba(255,255,255,0.8);max-width:460px;margin:0 auto 24px;line-height:1.7;position:relative;}
+  .next-badge{display:inline-block;background:rgba(232,168,124,0.2);border:1px solid rgba(232,168,124,0.4);color:var(--accent);padding:8px 24px;border-radius:24px;font-size:13px;font-weight:600;position:relative;}
+  .pledge-card{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:24px 28px;margin:20px 0;text-align:left;}
+  .pledge-item{display:flex;align-items:flex-start;gap:14px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.1);}
+  .pledge-item:last-child{border-bottom:none;}
+  .pledge-check{width:24px;height:24px;border-radius:6px;border:2px solid rgba(232,168,124,0.4);background:rgba(232,168,124,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;cursor:pointer;transition:all 0.2s;font-size:13px;font-weight:700;color:transparent;}
+  .pledge-check.checked{background:var(--accent);border-color:var(--accent);color:var(--primary);}
+  .pledge-text{font-size:14px;color:rgba(255,255,255,0.8);line-height:1.6;padding-top:2px;}
+  .body-text{font-size:16px;line-height:1.75;color:#333;margin-bottom:16px;}
+  .highlight-text{color:var(--primary);font-weight:600;}
+  .spacer-sm{height:14px;}
+  .tag-pill{display:inline-block;background:rgba(109,179,160,0.15);color:var(--accent2);border:1px solid rgba(109,179,160,0.3);padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;margin-right:6px;margin-bottom:6px;}
+  .campaign-footer{background:var(--primary);color:rgba(255,255,255,0.6);text-align:center;padding:28px 20px;font-size:13px;}
+  .campaign-footer strong{color:var(--accent);}
+</style>
+</head>
+<body>
+<header class="campaign-header">
+  <div class="header-inner">
+    <div class="campaign-badge">University of Glasgow · School of Biodiversity, One Health &amp; Veterinary Medicine</div>
+    <h1 class="campaign-title">Mattering at Work</h1>
+    <p class="campaign-subtitle">6-week wellbeing campaign · Based on Zach Mercurio's <em>The Power of Mattering</em></p>
+  </div>
+  <nav class="week-nav">
+    <span class="done">Week 1 ✓</span><span class="done">Week 2 ✓</span><span class="done">Week 3 ✓</span><span class="done">Week 4 ✓</span>
+    <span class="active">Week 5</span><span>Week 6</span>
+  </nav>
+</header>
+<div class="stepper">
+  <div class="step"><div class="step-circle active" id="sc1">1</div><div class="step-label active" id="sl1">Module 1</div></div>
+  <div class="step-line" id="line1"></div>
+  <div class="step"><div class="step-circle locked" id="sc2">🔒</div><div class="step-label" id="sl2">Module 2</div></div>
+  <div class="step-line" id="line2"></div>
+  <div class="step"><div class="step-circle locked" id="sc3">🔒</div><div class="step-label" id="sl3">Module 3</div></div>
+</div>
+<main class="slides-wrapper">
+
+  <div class="module-block unlocked" id="module1">
+    <div class="module-header-bar"><div class="module-header-left"><span class="module-num">Module 1 of 3</span><span class="module-title-bar">Building a Culture of Mattering</span></div><span class="module-status-badge badge-active" id="badge1">In progress</span></div>
+    <div class="slide-card">
+      <div class="slide-header"><div class="slide-icon icon-warm">🏗️</div><div class="slide-header-text"><span class="slide-tag">Culture · Systems Thinking</span><h3>From Individual Acts to Institutional Culture: The Architecture of Mattering</h3></div></div>
+      <div class="slide-body">
+        <p class="body-text">Over the past four weeks we have focused largely on interpersonal mattering — the daily signals exchanged between individuals. But Mercurio argues that the goal is something larger: an <em>institutional culture</em> where mattering is built into processes, structures, and norms — not dependent on the generosity of individual leaders.</p>
+        <div class="quote-block">
+          <p style="font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent2);font-style:normal;margin-bottom:10px;">Campaign Principle</p>
+          <p>Mattering becomes fragile when it relies only on individual goodwill; it becomes durable when it is embedded in organisational systems, routines and culture.</p>
+        </div>
+        <p class="body-text">Mercurio identifies what he calls <em>mattering infrastructure</em> — the institutional practices that systematically communicate significance to every member of the community.</p>
+        <div class="three-col">
+          <div class="info-card"><div class="card-icon">📋</div><h4>Structured recognition systems</h4><p>Regular, role-diverse recognition — not just clinical achievement awards. Technicians, administrators, students whose work enables others. Named, specific, public.</p></div>
+          <div class="info-card"><div class="card-icon">🔄</div><h4>Feedback loops that close</h4><p>When someone raises a concern or suggestion, the system responds — even if the answer is "we heard you, and here's why we can't act on it." Silence erases.</p></div>
+          <div class="info-card"><div class="card-icon">🎯</div><h4>Purpose-linking onboarding</h4><p>New members — at every level — are explicitly told how their specific role connects to the broader mission from day one. Not assumed. Stated.</p></div>
+        </div>
+        <div class="three-col">
+          <div class="info-card"><div class="card-icon">🤝</div><h4>Cross-role visibility events</h4><p>Structured opportunities for different parts of the team to understand each other's work — so that dependency is visible, not invisible.</p></div>
+          <div class="info-card"><div class="card-icon">📊</div><h4>Equity audits of recognition</h4><p>Periodically reviewing who gets nominated, credited, promoted, and invited to lead — and whether the pattern reflects the team's actual composition.</p></div>
+          <div class="info-card"><div class="card-icon">💡</div><h4>Protected development for all roles</h4><p>Training, conference attendance, and professional development available equitably — not just to those in senior positions.</p></div>
+        </div>
+        <div class="reflection-box">
+          <div class="reflection-label"><span>Team Audit — tick each as you reflect</span></div>
+          <p>Look at the list above. In your team or department:</p>
+          <div class="reflection-item" onclick="toggleCheck(this,'m1')"><div class="ref-check" id="r1_1"></div><div class="ref-text">Is there a formal mechanism for cross-role recognition that reaches everyone — or only those at certain grades?</div></div>
+          <div class="reflection-item" onclick="toggleCheck(this,'m1')"><div class="ref-check" id="r1_2"></div><div class="ref-text">When a concern is raised through a formal channel, does the person who raised it hear back? What happens then?</div></div>
+          <div class="reflection-item" onclick="toggleCheck(this,'m1')"><div class="ref-check" id="r1_3"></div><div class="ref-text">If a new technician or administrator joins tomorrow, who explicitly tells them why their role matters to the team's mission?</div></div>
+        </div>
+        <div class="spacer-sm"></div>
+        <div><span class="tag-pill">Culture</span><span class="tag-pill">Systems</span><span class="tag-pill">Week 5</span></div>
+      </div>
+    </div>
+    <div class="complete-section">
+      <p class="progress-hint" id="hint1">Reflect on all three to unlock <strong>Module 2</strong></p>
+      <div class="progress-bar-outer"><div class="progress-bar-fill" id="prog1" style="width:0%"></div></div>
+      <button class="complete-btn" id="btn1" onclick="completeModule(1)">✓ &nbsp; Mark Module 1 Complete &amp; Unlock Next</button>
+    </div>
+    <div class="completion-banner hidden" id="done1">✓ &nbsp; Module 1 complete. Module 2 is now unlocked below.</div>
+  </div>
+
+  <div class="module-block locked" id="module2">
+    <div class="locked-overlay"><div class="lock-icon">🔒</div><h3>Module 2 — Locked</h3><p>Complete Module 1 to unlock <em>The Mattering Conversation</em>.</p></div>
+    <div class="module-header-bar" style="display:none" id="mh2"><div class="module-header-left"><span class="module-num">Module 2 of 3</span><span class="module-title-bar">The Mattering Conversation</span></div><span class="module-status-badge badge-active" id="badge2">In progress</span></div>
+    <div class="slide-card" style="display:none" id="sc2content">
+      <div class="slide-header"><div class="slide-icon icon-teal">📣</div><div class="slide-header-text"><span class="slide-tag">Practical Skills · Communication</span><h3>How to Tell Someone They Matter — Specifically</h3></div></div>
+      <div class="slide-body">
+        <p class="body-text">Most of us are not taught to communicate significance deliberately. We absorb cultural norms — British reserve, professional stoicism, clinical detachment — that can make explicit acknowledgement feel awkward or even unprofessional. Mercurio's argument is that this is a skill, and skills can be practised.</p>
+        <p class="body-text">He offers a simple but powerful framework for the "mattering conversation" — a brief, intentional moment that communicates significance. It has three elements:</p>
+        <div class="behaviour-list">
+          <div class="behaviour-card positive"><div class="beh-icon">1️⃣</div><div class="beh-body"><h4>Name what you specifically noticed</h4><p>Not "you did well" but "I noticed you stayed with that family for an extra twenty minutes after the procedure — she needed that." Specificity proves attention.</p></div></div>
+          <div class="behaviour-card positive"><div class="beh-icon">2️⃣</div><div class="beh-body"><h4>Explain the impact</h4><p>Not "good job" but "it meant that family left feeling cared for rather than processed — and that matters for everything we're trying to build here." Connect the action to something larger.</p></div></div>
+          <div class="behaviour-card positive"><div class="beh-icon">3️⃣</div><div class="beh-body"><h4>Express that their presence is not interchangeable</h4><p>Not "the team is great" but "I'm genuinely glad you're on this team — the way you approach things changes the room." Make the irreplaceability explicit.</p></div></div>
+        </div>
+        <div class="quote-block">
+          <p style="font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent2);font-style:normal;margin-bottom:10px;">Campaign Principle</p>
+          <p>Mattering does not always require grand gestures. Sometimes a ninety-second conversation can change how someone carries the next ninety days.</p>
+        </div>
+        <div class="reflection-box">
+          <div class="reflection-label"><span>Practice Commitments — tick what you will do this week</span></div>
+          <p>Choose at least one of the following to practise this week:</p>
+          <div class="reflection-item" onclick="toggleCheck(this,'m2')"><div class="ref-check" id="r2_1"></div><div class="ref-text">I will find one colleague and say something specific I noticed — naming what I saw and why it mattered.</div></div>
+          <div class="reflection-item" onclick="toggleCheck(this,'m2')"><div class="ref-check" id="r2_2"></div><div class="ref-text">I will send one short, specific email or message — not in response to a request, just naming something I noticed.</div></div>
+          <div class="reflection-item" onclick="toggleCheck(this,'m2')"><div class="ref-check" id="r2_3"></div><div class="ref-text">At my next team meeting, I will begin with a one-minute specific recognition: naming one person and one specific thing I observed.</div></div>
+        </div>
+        <div class="spacer-sm"></div>
+        <div><span class="tag-pill">Communication</span><span class="tag-pill">Recognition</span><span class="tag-pill">Week 5</span></div>
+      </div>
+    </div>
+    <div class="complete-section" style="display:none" id="cs2">
+      <p class="progress-hint" id="hint2">Commit to at least one practice above to unlock <strong>Module 3</strong></p>
+      <div class="progress-bar-outer"><div class="progress-bar-fill" id="prog2" style="width:0%"></div></div>
+      <button class="complete-btn" id="btn2" onclick="completeModule(2)">✓ &nbsp; Mark Module 2 Complete &amp; Unlock Next</button>
+    </div>
+    <div class="completion-banner hidden" id="done2">✓ &nbsp; Module 2 complete. Module 3 is now unlocked below.</div>
+  </div>
+
+  <div class="module-block locked" id="module3">
+    <div class="locked-overlay"><div class="lock-icon">🔒</div><h3>Module 3 — Locked</h3><p>Complete Modules 1 &amp; 2 to unlock the scenario.</p></div>
+    <div class="module-header-bar" style="display:none" id="mh3"><div class="module-header-left"><span class="module-num">Module 3 of 3</span><span class="module-title-bar">What Would You Do?</span></div><span class="module-status-badge badge-active" id="badge3">In progress</span></div>
+    <div class="slide-card" style="display:none" id="sc3content">
+      <div class="slide-header"><div class="slide-icon icon-blue">📋</div><div class="slide-header-text"><span class="slide-tag">Scenario · Appraisal</span><h3>The Appraisal That Said Everything and Nothing</h3></div></div>
+      <div class="slide-body">
+        <div class="vignette-box">
+          <div class="vignette-header"><span>📖</span><span>Scenario: Annual Appraisal, Research Department</span></div>
+          <div class="vignette-body">
+            <p>Dr Mei has been a senior research associate for four years. She is highly competent, publishes regularly, and is well respected by the postgraduate students she supervises. In her annual appraisal, her line manager tells her she is performing at the expected level, that her research is on track, and that there are "no concerns." The conversation lasts twenty-two minutes.</p>
+            <p>Mei leaves the appraisal feeling flat. She could not say exactly why — nothing negative was said. She walks back to her office and begins updating her CV.</p>
+            <div class="vignette-question">💬 What went wrong — and what would a mattering-conscious appraisal look like?</div>
+            <div class="vignette-options" id="vignette1">
+              <div class="vignette-option" onclick="selectOption(this,'vignette1','A')"><div class="opt-letter">A</div><div class="opt-text">The appraisal did its job — it assessed performance and identified no concerns. Mei's emotional response is about her expectations, not the appraisal.</div></div>
+              <div class="vignette-option" onclick="selectOption(this,'vignette1','B')"><div class="opt-letter">B</div><div class="opt-text">The manager should have set clearer development goals — the problem is the absence of a growth plan, not a mattering issue.</div></div>
+              <div class="vignette-option" onclick="selectOption(this,'vignette1','C')"><div class="opt-letter">C</div><div class="opt-text">The appraisal communicated competence but not significance. Mei knows she is adequate — she does not know she is valued. A mattering-conscious appraisal names the specific, irreplaceable contribution she makes and expresses genuine investment in her future here.</div></div>
+              <div class="vignette-option" onclick="selectOption(this,'vignette1','D')"><div class="opt-letter">D</div><div class="opt-text">Mei should have raised the things she wanted to discuss — the appraisal is a two-way conversation and she has agency to steer it.</div></div>
+            </div>
+            <div class="vignette-feedback feedback-good" id="vignette1-feedback-C"><strong>Yes — performance assessment is not the same as mattering.</strong> The appraisal told Mei she is meeting expectations. It did not tell her she is significant, valued, or irreplaceable. "No concerns" is not a mattering statement — it is an absence of a problem. A mattering-conscious appraisal would include: a specific, named acknowledgement of her contribution; a genuine inquiry into how she is experiencing the work and the team; and an explicit expression of investment in her development and future here. The CV update tells us something has been consistently missing.</div>
+            <div class="vignette-feedback feedback-consider" id="vignette1-feedback-A"><strong>Worth reconsidering.</strong> Mei did not leave expecting a prize — she left with no information about whether she matters to the people she works alongside. That is not a misaligned expectation; it is a genuine unmet need. The appraisal system as described is functional but not mattering-conscious.</div>
+            <div class="vignette-feedback feedback-consider" id="vignette1-feedback-B"><strong>Partly right — but incomplete.</strong> A growth plan would help. But Mei's flatness is not primarily about the absence of goals — it is about the absence of being <em>seen</em>. You can have a detailed development plan and still leave feeling interchangeable.</div>
+            <div class="vignette-feedback feedback-consider" id="vignette1-feedback-D"><strong>Worth reconsidering.</strong> The structure and culture of appraisal determines what feels speakable. If the room communicates "this is a performance assessment," raising questions about significance feels out of place. The responsibility for creating conditions where mattering can be communicated rests primarily with the person holding the power in that room.</div>
+          </div>
+        </div>
+        <div class="reflection-box">
+          <div class="reflection-label"><span>Final Reflection — tick to confirm engagement</span></div>
+          <div class="reflection-item" onclick="toggleCheck(this,'m3')"><div class="ref-check" id="r3_1"></div><div class="ref-text">I have read the scenario, selected a response, and read the feedback.</div></div>
+          <div class="reflection-item" onclick="toggleCheck(this,'m3')"><div class="ref-check" id="r3_2"></div><div class="ref-text">I can identify one structural or process change in my team — in meetings, appraisals, onboarding, or recognition — that would make mattering more durable.</div></div>
+          <div class="reflection-item" onclick="toggleCheck(this,'m3')"><div class="ref-check" id="r3_3"></div><div class="ref-text">I will advocate for or initiate at least one such change, however small, in the next month.</div></div>
+        </div>
+        <div class="definition-box"><div class="def-label">Key Takeaway · Week 5</div><p class="def-text">Culture is the sum of what we normalise. When we integrate mattering signals into institutional processes — appraisals, meetings, recognition systems, onboarding — we shift from depending on individual generosity to building collective infrastructure. That is what makes mattering durable.</p></div>
+        <div class="spacer-sm"></div>
+        <div><span class="tag-pill">Culture</span><span class="tag-pill">Appraisal</span><span class="tag-pill">Leadership</span><span class="tag-pill">Week 5</span></div>
+      </div>
+    </div>
+    <div class="complete-section" style="display:none" id="cs3">
+      <p class="progress-hint" id="hint3">Tick all three reflections to complete <strong>Week 5</strong></p>
+      <div class="progress-bar-outer"><div class="progress-bar-fill" id="prog3" style="width:0%"></div></div>
+      <button class="complete-btn" id="btn3" onclick="completeModule(3)">🎉 &nbsp; Complete Week 5</button>
+    </div>
+    <div class="completion-banner hidden" id="done3">🎉 &nbsp; Week 5 complete! The final week arrives in your inbox next week.</div>
+  </div>
+
+  <div class="week-complete-card" id="weekComplete">
+    <h2>Week 5 Complete</h2>
+    <p>You've explored how to embed mattering into institutional structures — and practised the specific language of significance. One week to go: the final week turns inward, asking what it means to tend to your own mattering.</p>
+    <div class="next-badge">📬 Week 6 — the final week — arrives in your inbox next week</div>
+  </div>
+
+</main>
+<footer class="campaign-footer">
+  <p><strong>Mattering at Work</strong> · 6-Week Campaign</p>
+  <p style="margin-top:6px;">School of Biodiversity, One Health &amp; Veterinary Medicine — Learning Environment Champions Initiative</p>
+  <p style="margin-top:4px;font-size:12px;">Based on Zach Mercurio's <em>The Power of Mattering</em> (2024)</p>
+
+  <div style="text-align:center;padding:16px 20px 0;border-top:1px solid rgba(255,255,255,0.08);margin-top:16px;">
+    <button onclick="resetProgress()" style="background:none;border:none;color:rgba(255,255,255,0.3);font-size:12px;cursor:pointer;font-family:'Source Sans 3',sans-serif;text-decoration:underline;padding:4px 8px;transition:color 0.2s;" onmouseover="this.style.color='rgba(255,255,255,0.6)'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">&#8635; Reset my progress</button>
+  </div>
+</footer><script>
+  const STORAGE_KEY='mattering_w5';
+  let checks={m1:[false,false,false],m2:[false,false,false],m3:[false,false,false]};
+  let completed={1:false,2:false,3:false};
+  function loadState(){try{const s=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');if(s.checks)checks=s.checks;if(s.completed)completed=s.completed;}catch(e){}}
+  function saveState(){localStorage.setItem(STORAGE_KEY,JSON.stringify({checks,completed}));}
+  function applyState(){
+    ['m1','m2','m3'].forEach((mk,mi)=>{const n=mi+1;checks[mk].forEach((v,i)=>{const el=document.getElementById('r'+n+'_'+(i+1));if(el&&v){el.classList.add('checked');el.textContent='✓';}});updateProgress(n);});
+    if(completed[1]){markDone(1,false);if(completed[2]){unlockModule(2,false);markDone(2,false);if(completed[3]){unlockModule(3,false);markDone(3,false);showWeekComplete(false);}else{unlockModule(3,false);}}else{unlockModule(2,false);}}
+  }
+  function toggleCheck(row,mk){
+    const check=row.querySelector('.ref-check');const isChecked=check.classList.toggle('checked');check.textContent=isChecked?'✓':'';
+    const allItems=row.parentElement.querySelectorAll('.reflection-item');const idx=Array.from(allItems).indexOf(row);const n=parseInt(mk.replace('m',''));
+    checks[mk][idx]=isChecked;saveState();updateProgress(n);
+  }
+  function updateProgress(n){
+    const mk='m'+n;const done=checks[mk].filter(Boolean).length;const total=checks[mk].length;const pct=Math.round((done/total)*100);
+    const prog=document.getElementById('prog'+n);const btn=document.getElementById('btn'+n);const hint=document.getElementById('hint'+n);
+    if(prog)prog.style.width=pct+'%';
+    if(btn){if(done===total){btn.classList.add('ready');if(hint)hint.innerHTML='<strong>All done!</strong> Click below to continue.';}else{btn.classList.remove('ready');if(hint){const r=total-done;const nxt=n<3?'Module '+(n+1):'Week 5';hint.innerHTML=`Reflect on <strong>${r} more question${r>1?'s':''}</strong> to unlock <strong>${nxt}</strong>`;}}}
+  }
+  function completeModule(n){const mk='m'+n;if(!checks[mk].every(Boolean))return;completed[n]=true;saveState();markDone(n,true);if(n<3){setTimeout(()=>unlockModule(n+1,true),300);}else{setTimeout(()=>showWeekComplete(true),300);}}
+  function markDone(n,animate){
+    const mod=document.getElementById('module'+n);const cs=document.getElementById('cs'+n);const done=document.getElementById('done'+n);const badge=document.getElementById('badge'+n);const sc=document.getElementById('sc'+n);const sl=document.getElementById('sl'+n);
+    mod.classList.add('completed');if(cs)cs.style.display='none';if(done)done.classList.remove('hidden');if(badge){badge.textContent='✓ Complete';badge.className='module-status-badge badge-done';}
+    if(sc){sc.textContent='✓';sc.className='step-circle done';}if(sl){sl.textContent='Module '+n;sl.className='step-label done';}
+    const line=document.getElementById('line'+n);if(line)line.classList.add('done');
+  }
+  function unlockModule(n,animate){
+    const mod=document.getElementById('module'+n);const mh=document.getElementById('mh'+n);const content=document.getElementById('sc'+n+'content');const cs=document.getElementById('cs'+n);const sc=document.getElementById('sc'+n);const sl=document.getElementById('sl'+n);
+    mod.classList.remove('locked');mod.classList.add('unlocked');if(mh)mh.style.display='flex';if(content)content.style.display='block';if(cs)cs.style.display='flex';
+    if(sc){sc.textContent=n;sc.className='step-circle active';}if(sl){sl.textContent='Module '+n;sl.className='step-label active';}
+    if(animate){mod.classList.add('just-unlocked');setTimeout(()=>mod.classList.remove('just-unlocked'),1000);mod.scrollIntoView({behavior:'smooth',block:'start'});}
+  }
+  function showWeekComplete(animate){const card=document.getElementById('weekComplete');card.classList.add('show');if(animate)card.scrollIntoView({behavior:'smooth',block:'start'});}
+  function selectOption(el,vid,letter){const c=document.getElementById(vid);c.querySelectorAll('.vignette-option').forEach(o=>o.classList.remove('selected'));el.classList.add('selected');c.querySelectorAll('.vignette-feedback').forEach(f=>f.classList.remove('show'));const fb=document.getElementById(vid+'-feedback-'+letter);if(fb)fb.classList.add('show');}
+  function togglePledge(el){el.classList.toggle('checked');el.textContent=el.classList.contains('checked')?'✓':'';}
+  loadState();applyState();updateProgress(1);
+  function resetProgress(){if(confirm('This will clear all your saved progress for this week and start fresh. Are you sure?')){localStorage.removeItem('mattering_w5');location.reload();}}
+</script>
+</body>
+</html>
