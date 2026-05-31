@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mattering at Work — Week 4</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;600&display=swap');
+  :root{--primary:#1a3a4a;--accent:#e8a87c;--accent2:#6db3a0;--light:#f7f4ef;--muted:#6b7280;--border:#ddd8d0;--locked-bg:#f0ede8;--locked-border:#ccc8c0;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Source Sans 3',sans-serif;background:var(--light);color:var(--primary);line-height:1.7;font-size:16px;}
+  .campaign-header{background:var(--primary);color:white;text-align:center;position:relative;overflow:hidden;}
+  .campaign-header::before{content:'';position:absolute;top:-40px;right:-60px;width:300px;height:300px;background:rgba(232,168,124,0.15);border-radius:50%;}
+  .header-inner{padding:48px 32px 40px;position:relative;z-index:1;}
+  .campaign-badge{display:inline-block;background:rgba(232,168,124,0.25);color:var(--accent);border:1px solid rgba(232,168,124,0.4);padding:4px 16px;border-radius:20px;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-bottom:20px;}
+  .campaign-title{font-family:'Playfair Display',serif;font-size:clamp(28px,5vw,48px);font-weight:700;line-height:1.2;margin-bottom:8px;}
+  .campaign-subtitle{font-size:15px;color:rgba(255,255,255,0.65);font-weight:300;margin-bottom:24px;}
+  .week-nav{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;padding:16px 32px;background:rgba(0,0,0,0.2);}
+  .week-nav span{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.15);}
+  .week-nav span.active{background:var(--accent);color:var(--primary);border-color:var(--accent);}
+  .week-nav span.done{background:rgba(109,179,160,0.3);color:rgba(255,255,255,0.8);border-color:rgba(109,179,160,0.4);}
+  .stepper{max-width:860px;margin:40px auto 0;padding:0 20px;display:flex;align-items:center;}
+  .step{display:flex;flex-direction:column;align-items:center;flex:1;}
+  .step-line{flex:1;height:2px;background:var(--border);margin-top:-18px;}
+  .step-line.done{background:var(--accent2);}
+  .step-circle{width:36px;height:36px;border-radius:50%;border:2px solid var(--border);background:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--muted);position:relative;z-index:1;transition:all 0.3s;flex-shrink:0;}
+  .step-circle.active{border-color:var(--primary);background:var(--primary);color:white;}
+  .step-circle.done{border-color:var(--accent2);background:var(--accent2);color:white;}
+  .step-circle.locked{border-color:var(--locked-border);background:var(--locked-bg);color:#aaa;}
+  .step-label{font-size:11px;font-weight:600;color:var(--muted);margin-top:8px;text-align:center;white-space:nowrap;}
+  .step-label.active{color:var(--primary);} .step-label.done{color:var(--accent2);}
+  .slides-wrapper{max-width:860px;margin:0 auto;padding:40px 20px 80px;}
+  .module-block{margin-bottom:40px;border-radius:16px;overflow:hidden;border:1px solid var(--border);transition:all 0.4s;}
+  .module-block.locked{border-color:var(--locked-border);background:var(--locked-bg);opacity:0.7;}
+  .module-block.locked .slide-card{display:none;}
+  .locked-overlay{display:none;padding:40px;text-align:center;}
+  .module-block.locked .locked-overlay{display:flex;flex-direction:column;align-items:center;gap:12px;}
+  .lock-icon{width:56px;height:56px;border-radius:50%;background:rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;font-size:24px;}
+  .locked-overlay h3{font-family:'Playfair Display',serif;font-size:18px;color:#888;}
+  .locked-overlay p{font-size:14px;color:#aaa;max-width:300px;}
+  .module-block.unlocked{background:white;box-shadow:0 2px 12px rgba(0,0,0,0.08);}
+  .module-block.unlocked .locked-overlay{display:none;}
+  .module-block.completed{background:white;border-color:var(--accent2);box-shadow:0 2px 12px rgba(109,179,160,0.15);}
+  .module-block.completed .locked-overlay{display:none;}
+  .completion-banner{background:rgba(109,179,160,0.08);border-top:1px solid rgba(109,179,160,0.3);padding:12px 24px;display:flex;align-items:center;gap:10px;font-size:13px;color:#1a5a46;font-weight:600;}
+  .completion-banner.hidden{display:none;}
+  .module-header-bar{padding:14px 24px;background:var(--primary);color:white;display:flex;align-items:center;justify-content:space-between;}
+  .module-block.completed .module-header-bar{background:var(--accent2);}
+  .module-header-left{display:flex;align-items:center;gap:12px;}
+  .module-num{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;opacity:0.7;}
+  .module-title-bar{font-size:14px;font-weight:600;}
+  .module-status-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;}
+  .badge-active{background:rgba(255,255,255,0.2);color:white;}
+  .badge-done{background:rgba(255,255,255,0.3);color:white;}
+  .slide-card{background:white;}
+  .slide-header{padding:28px 32px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:16px;}
+  .slide-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+  .icon-warm{background:rgba(232,168,124,0.18);} .icon-teal{background:rgba(109,179,160,0.18);} .icon-blue{background:rgba(74,144,226,0.12);}
+  .slide-header-text h3{font-family:'Playfair Display',serif;font-size:21px;font-weight:700;line-height:1.3;margin-bottom:4px;}
+  .slide-tag{font-size:11px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);}
+  .slide-body{padding:28px 32px;}
+  .quote-block{background:var(--light);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;padding:18px 22px;margin:20px 0;}
+  .quote-block p{font-family:'Playfair Display',serif;font-size:17px;font-style:italic;line-height:1.6;}
+  .quote-block cite{display:block;margin-top:8px;font-size:12px;color:var(--muted);font-style:normal;font-weight:600;}
+  .definition-box{background:linear-gradient(135deg,rgba(26,58,74,0.04),rgba(109,179,160,0.08));border:1px solid rgba(109,179,160,0.3);border-radius:12px;padding:22px 26px;margin:20px 0;}
+  .def-label{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent2);margin-bottom:8px;}
+  .def-text{font-family:'Playfair Display',serif;font-size:18px;line-height:1.5;}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0;}
+  @media(max-width:560px){.two-col{grid-template-columns:1fr;}}
+  .pillar-card{background:var(--light);border-radius:12px;padding:18px;border:1px solid var(--border);}
+  .pillar-icon{font-size:26px;margin-bottom:8px;}
+  .pillar-card h4{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;margin-bottom:6px;}
+  .pillar-card p{font-size:13px;color:#444;line-height:1.5;}
+  .three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:20px 0;}
+  @media(max-width:640px){.three-col{grid-template-columns:1fr;}}
+  .info-card{background:var(--light);border-radius:12px;padding:18px;border:1px solid var(--border);}
+  .info-card .card-icon{font-size:24px;margin-bottom:8px;}
+  .info-card h4{font-size:14px;font-weight:600;margin-bottom:6px;}
+  .info-card p{font-size:13px;color:#555;line-height:1.5;}
+  .flip-cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:20px 0;}
+  .flip-card{height:155px;cursor:pointer;perspective:1000px;}
+  .flip-card-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform 0.55s cubic-bezier(0.4,0,0.2,1);}
+  .flip-card.flipped .flip-card-inner{transform:rotateY(180deg);}
+  .flip-front,.flip-back{position:absolute;width:100%;height:100%;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;text-align:center;}
+  .flip-front{background:var(--primary);color:white;}
+  .flip-front .flip-emoji{font-size:26px;margin-bottom:8px;}
+  .flip-front p{font-size:13px;font-weight:600;line-height:1.4;}
+  .flip-front .tap-hint{font-size:10px;color:rgba(255,255,255,0.45);margin-top:8px;}
+  .flip-back{background:var(--accent);color:var(--primary);transform:rotateY(180deg);}
+  .flip-back p{font-size:12px;line-height:1.5;}
+  .behaviour-list{display:grid;gap:12px;margin:20px 0;}
+  .behaviour-card{display:flex;gap:14px;padding:16px 18px;border:1px solid var(--border);border-radius:12px;background:white;align-items:flex-start;}
+  .behaviour-card.positive{border-left:4px solid var(--accent2);}
+  .beh-icon{font-size:20px;flex-shrink:0;margin-top:2px;}
+  .beh-body h4{font-size:14px;font-weight:600;margin-bottom:4px;}
+  .beh-body p{font-size:13px;color:var(--muted);line-height:1.5;}
+  .reflection-box{background:var(--light);border:1px solid var(--border);border-radius:12px;padding:24px 28px;margin:20px 0;}
+  .reflection-label{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .reflection-label::before{content:'✦';color:var(--accent);font-size:13px;}
+  .reflection-label span{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent2);}
+  .reflection-box>p{font-size:15px;color:var(--primary);margin-bottom:14px;}
+  .reflection-item{display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+  .reflection-item:last-of-type{border-bottom:none;}
+  .ref-check{width:24px;height:24px;border-radius:6px;border:2px solid var(--border);background:white;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all 0.2s;font-size:13px;font-weight:700;color:transparent;}
+  .ref-check.checked{background:var(--accent2);border-color:var(--accent2);color:white;}
+  .ref-text{font-size:15px;line-height:1.6;color:#333;}
+  .vignette-box{border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:20px 0;}
+  .vignette-header{background:var(--primary);color:white;padding:12px 22px;display:flex;align-items:center;gap:10px;font-weight:600;font-size:13px;}
+  .vignette-body{padding:22px;}
+  .vignette-body p{font-size:15px;line-height:1.7;color:#333;margin-bottom:14px;}
+  .vignette-question{background:rgba(232,168,124,0.12);border:1px solid rgba(232,168,124,0.3);border-radius:8px;padding:14px 18px;font-size:15px;font-weight:500;color:var(--primary);margin-top:14px;}
+  .vignette-options{display:grid;gap:10px;margin-top:14px;}
+  .vignette-option{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all 0.2s;background:white;text-align:left;}
+  .vignette-option:hover{border-color:var(--accent);background:rgba(232,168,124,0.05);}
+  .vignette-option.selected{border-color:var(--accent2);background:rgba(109,179,160,0.08);}
+  .vignette-option.selected .opt-letter{background:var(--accent2);color:white;}
+  .opt-letter{width:26px;height:26px;border-radius:50%;background:var(--light);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;transition:all 0.2s;color:var(--primary);}
+  .opt-text{font-size:14px;line-height:1.5;color:#333;padding-top:3px;}
+  .vignette-feedback{margin-top:14px;padding:14px 18px;border-radius:10px;font-size:14px;line-height:1.6;display:none;}
+  .vignette-feedback.show{display:block;}
+  .feedback-good{background:rgba(109,179,160,0.12);border:1px solid rgba(109,179,160,0.3);color:#1a4a3a;}
+  .feedback-consider{background:rgba(232,168,124,0.12);border:1px solid rgba(232,168,124,0.3);color:#6b3a10;}
+  .complete-section{padding:24px 32px;border-top:1px solid var(--border);background:var(--light);display:flex;flex-direction:column;align-items:center;gap:12px;}
+  .progress-hint{font-size:13px;color:var(--muted);text-align:center;}
+  .progress-hint strong{color:var(--primary);}
+  .progress-bar-outer{width:100%;max-width:400px;height:6px;background:var(--border);border-radius:10px;overflow:hidden;}
+  .progress-bar-fill{height:100%;background:var(--accent2);border-radius:10px;transition:width 0.4s ease;}
+  .complete-btn{padding:12px 32px;background:var(--primary);color:white;border:none;border-radius:10px;font-family:'Source Sans 3',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.2s;opacity:0.4;pointer-events:none;}
+  .complete-btn.ready{opacity:1;pointer-events:all;}
+  .complete-btn.ready:hover{background:#0f2535;transform:translateY(-1px);}
+  @keyframes unlockPulse{0%{box-shadow:0 0 0 0 rgba(109,179,160,0.4);}70%{box-shadow:0 0 0 12px rgba(109,179,160,0);}100%{box-shadow:0 0 0 0 rgba(109,179,160,0);}}
+  .just-unlocked{animation:unlockPulse 0.8s ease;}
+  .week-complete-card{display:none;background:var(--primary);border-radius:16px;padding:40px 36px;text-align:center;margin-top:20px;position:relative;overflow:hidden;}
+  .week-complete-card.show{display:block;}
+  .week-complete-card::before{content:'';position:absolute;top:-30px;right:-30px;width:180px;height:180px;background:rgba(232,168,124,0.1);border-radius:50%;}
+  .week-complete-card h2{font-family:'Playfair Display',serif;font-size:28px;color:var(--accent);margin-bottom:12px;position:relative;}
+  .week-complete-card p{font-size:15px;color:rgba(255,255,255,0.8);max-width:460px;margin:0 auto 24px;line-height:1.7;position:relative;}
+  .next-badge{display:inline-block;background:rgba(232,168,124,0.2);border:1px solid rgba(232,168,124,0.4);color:var(--accent);padding:8px 24px;border-radius:24px;font-size:13px;font-weight:600;position:relative;}
+  .pledge-card{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:24px 28px;margin:20px 0;text-align:left;}
+  .pledge-item{display:flex;align-items:flex-start;gap:14px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.1);}
+  .pledge-item:last-child{border-bottom:none;}
+  .pledge-check{width:24px;height:24px;border-radius:6px;border:2px solid rgba(232,168,124,0.4);background:rgba(232,168,124,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;cursor:pointer;transition:all 0.2s;font-size:13px;font-weight:700;color:transparent;}
+  .pledge-check.checked{background:var(--accent);border-color:var(--accent);color:var(--primary);}
+  .pledge-text{font-size:14px;color:rgba(255,255,255,0.8);line-height:1.6;padding-top:2px;}
+  .body-text{font-size:16px;line-height:1.75;color:#333;margin-bottom:16px;}
+  .highlight-text{color:var(--primary);font-weight:600;}
+  .spacer-sm{height:14px;}
+  .tag-pill{display:inline-block;background:rgba(109,179,160,0.15);color:var(--accent2);border:1px solid rgba(109,179,160,0.3);padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;margin-right:6px;margin-bottom:6px;}
+  .campaign-footer{background:var(--primary);color:rgba(255,255,255,0.6);text-align:center;padding:28px 20px;font-size:13px;}
+  .campaign-footer strong{color:var(--accent);}
+</style>
+</head>
+<body>
+<header class="campaign-header">
+  <div class="header-inner">
+    <div class="campaign-badge">University of Glasgow · College of Medical, Veterinary &amp; Life Sciences</div>
+    <h1 class="campaign-title">Mattering at Work</h1>
+    <p class="campaign-subtitle">6-week wellbeing campaign · Based on Zach Mercurio's <em>The Power of Mattering</em></p>
+  </div>
+  <nav class="week-nav">
+    <span class="done">Week 1 ✓</span><span class="done">Week 2 ✓</span><span class="done">Week 3 ✓</span>
+    <span class="active">Week 4</span><span>Week 5</span><span>Week 6</span>
+  </nav>
+</header>
+<div class="stepper">
+  <div class="step"><div class="step-circle active" id="sc1">1</div><div class="step-label active" id="sl1">Module 1</div></div>
+  <div class="step-line" id="line1"></div>
+  <div class="step"><div class="step-circle locked" id="sc2">🔒</div><div class="step-label" id="sl2">Module 2</div></div>
+  <div class="step-line" id="line2"></div>
+  <div class="step"><div class="step-circle locked" id="sc3">🔒</div><div class="step-label" id="sl3">Module 3</div></div>
+</div>
+<main class="slides-wrapper">
+
+  <div class="module-block unlocked" id="module1">
+    <div class="module-header-bar">
+      <div class="module-header-left"><span class="module-num">Module 1 of 3</span><span class="module-title-bar">Mattering Across Difference</span></div>
+      <span class="module-status-badge badge-active" id="badge1">In progress</span>
+    </div>
+    <div class="slide-card">
+      <div class="slide-header"><div class="slide-icon icon-warm">🌍</div><div class="slide-header-text"><span class="slide-tag">Equity · Inclusion</span><h3>Not Everyone Starts From the Same Place: Mattering and Identity</h3></div></div>
+      <div class="slide-body">
+        <p class="body-text">Mercurio is clear on a point that is easy to overlook: mattering is not distributed equally in workplaces. Who gets noticed, whose contributions are acknowledged, whose voice is heard in meetings, whose development is invested in — these are not random. They are shaped by the same patterns of privilege and marginalisation that shape broader society.</p>
+        <div class="definition-box">
+          <div class="def-label">Drawing on Mercurio (2024)</div>
+          <p class="def-text">A mattering culture requires more than telling people they matter. It also requires organisational conditions that allow people to feel seen, heard, valued, and needed — and those conditions are not experienced equally by everyone.</p>
+        </div>
+        <p class="body-text">Across the College of Medical, Veterinary &amp; Life Sciences, this is particularly relevant. Our teams are increasingly international and diverse — yet the structures that determine who is visible, who is promoted, whose ideas are credited, and who is trusted with autonomy often reflect legacy hierarchies.</p>
+        <div class="three-col">
+          <div class="info-card"><div class="card-icon">🌐</div><h4>International staff</h4><p>Navigating language, cultural norms around hierarchy, and unfamiliar institutional practices — while being expected to perform at the same level from day one.</p></div>
+          <div class="info-card"><div class="card-icon">👩‍⚕️</div><h4>Women in clinical leadership</h4><p>Research consistently shows women's contributions in team settings are more frequently interrupted, credited to others, or overlooked in the moment.</p></div>
+          <div class="info-card"><div class="card-icon">🔧</div><h4>Technical and support staff</h4><p>Whose essential work is often invisible by design — they make things run without being seen to make things run. Their absence would be felt; their presence is taken for granted.</p></div>
+        </div>
+        <div class="reflection-box">
+          <div class="reflection-label"><span>Equity Lens — tick each as you reflect</span></div>
+          <p>Consider your last three instances of publicly recognising someone's contribution at work:</p>
+          <div class="reflection-item" onclick="toggleCheck(this,'m1')"><div class="ref-check" id="r1_1"></div><div class="ref-text">Who did you recognise? What are their roles, backgrounds, and identities — and does the pattern reflect your whole team?</div></div>
+          <div class="reflection-item" onclick="toggleCheck(this,'m1')"><div class="ref-check" id="r1_2"></div><div class="ref-text">Who wasn't recognised — and might have deserved to be?</div></div>
+          <div class="reflection-item" onclick="toggleCheck(this,'m1')"><div class="ref-check" id="r1_3"></div><div class="ref-text">Are there structural factors in your team that systematically make certain people more or less visible?</div></div>
+        </div>
+        <div class="spacer-sm"></div>
+        <div><span class="tag-pill">Equity</span><span class="tag-pill">Inclusion</span><span class="tag-pill">Week 4</span></div>
+      </div>
+    </div>
+    <div class="complete-section">
+      <p class="progress-hint" id="hint1">Reflect on all three to unlock <strong>Module 2</strong></p>
+      <div class="progress-bar-outer"><div class="progress-bar-fill" id="prog1" style="width:0%"></div></div>
+      <button class="complete-btn" id="btn1" onclick="completeModule(1)">✓ &nbsp; Mark Module 1 Complete &amp; Unlock Next</button>
+    </div>
+    <div class="completion-banner hidden" id="done1">✓ &nbsp; Module 1 complete. Module 2 is now unlocked below.</div>
+  </div>
+
+  <div class="module-block locked" id="module2">
+    <div class="locked-overlay"><div class="lock-icon">🔒</div><h3>Module 2 — Locked</h3><p>Complete Module 1 to unlock <em>Inclusion vs Mattering</em>.</p></div>
+    <div class="module-header-bar" style="display:none" id="mh2"><div class="module-header-left"><span class="module-num">Module 2 of 3</span><span class="module-title-bar">Inclusion vs Mattering</span></div><span class="module-status-badge badge-active" id="badge2">In progress</span></div>
+    <div class="slide-card" style="display:none" id="sc2content">
+      <div class="slide-header"><div class="slide-icon icon-teal">🧩</div><div class="slide-header-text"><span class="slide-tag">Belonging · Everyday Actions</span><h3>The Difference Between Inclusion and Mattering</h3></div></div>
+      <div class="slide-body">
+        <p class="body-text">Organisations often pursue inclusion as a policy goal — and that is necessary. But Mercurio draws a crucial distinction: <em>inclusion</em> is about creating structural access; <em>mattering</em> is about the lived experience of significance once you are inside the structure. You can include someone while making them feel irrelevant. Inclusion is the floor; mattering is what makes the room worth being in.</p>
+        <div class="two-col">
+          <div class="pillar-card"><div class="pillar-icon">🚪</div><h4>Inclusion (structural access)</h4><p>"Everyone is invited to the meeting." "We have a diversity policy." These are necessary but not sufficient conditions for people to feel they matter.</p></div>
+          <div class="pillar-card"><div class="pillar-icon">✨</div><h4>Mattering (lived significance)</h4><p>"Your specific perspective shaped how we approached this." "I sought your input because you've seen this from a different angle." Significance must be actively communicated.</p></div>
+        </div>
+        <div class="flip-cards-grid">
+          <div class="flip-card" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-front"><div class="flip-emoji">🗣️</div><p>When voices get talked over</p><div class="tap-hint">tap to explore</div></div><div class="flip-back"><p>If someone's point is restated by another without credit — name it: "I think that's what Fatima was just saying — Fatima, do you want to expand?"</p></div></div></div>
+          <div class="flip-card" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-front"><div class="flip-emoji">📄</div><p>Authorship and credit</p><div class="tap-hint">tap to explore</div></div><div class="flip-back"><p>Review your last paper, grant, or report. Who contributed significantly but whose name isn't there? Authorship decisions are mattering decisions.</p></div></div></div>
+          <div class="flip-card" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-front"><div class="flip-emoji">🌍</div><p>Cultural humility in recognition</p><div class="tap-hint">tap to explore</div></div><div class="flip-back"><p>Public recognition is not culturally universal. Some colleagues find individual spotlighting uncomfortable. Ask: "I'd like to acknowledge your contribution — how would you prefer I do that?"</p></div></div></div>
+          <div class="flip-card" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-front"><div class="flip-emoji">🎓</div><p>Students and mattering gaps</p><div class="tap-hint">tap to explore</div></div><div class="flip-back"><p>International students, first-generation students, students from non-traditional backgrounds — research shows these groups are most likely to feel academically invisible. The same effort and curiosity apply.</p></div></div></div>
+        </div>
+        <div class="reflection-box">
+          <div class="reflection-label"><span>Reflect — tick each as you consider it</span></div>
+          <p>Think about the distinction between inclusion and mattering in your own context:</p>
+          <div class="reflection-item" onclick="toggleCheck(this,'m2')"><div class="ref-check" id="r2_1"></div><div class="ref-text">Can I identify someone who is structurally included in my team but who may not feel they genuinely matter to it?</div></div>
+          <div class="reflection-item" onclick="toggleCheck(this,'m2')"><div class="ref-check" id="r2_2"></div><div class="ref-text">Have I ever noticed a colleague's contribution being credited to someone else — and what did I do?</div></div>
+          <div class="reflection-item" onclick="toggleCheck(this,'m2')"><div class="ref-check" id="r2_3"></div><div class="ref-text">Is there a student or colleague from a different background whose experience of mattering I could check in on this week?</div></div>
+        </div>
+        <div class="spacer-sm"></div>
+        <div><span class="tag-pill">Belonging</span><span class="tag-pill">Allyship</span><span class="tag-pill">Week 4</span></div>
+      </div>
+    </div>
+    <div class="complete-section" style="display:none" id="cs2">
+      <p class="progress-hint" id="hint2">Reflect on all three to unlock <strong>Module 3</strong></p>
+      <div class="progress-bar-outer"><div class="progress-bar-fill" id="prog2" style="width:0%"></div></div>
+      <button class="complete-btn" id="btn2" onclick="completeModule(2)">✓ &nbsp; Mark Module 2 Complete &amp; Unlock Next</button>
+    </div>
+    <div class="completion-banner hidden" id="done2">✓ &nbsp; Module 2 complete. Module 3 is now unlocked below.</div>
+  </div>
+
+  <div class="module-block locked" id="module3">
+    <div class="locked-overlay"><div class="lock-icon">🔒</div><h3>Module 3 — Locked</h3><p>Complete Modules 1 &amp; 2 to unlock the scenario.</p></div>
+    <div class="module-header-bar" style="display:none" id="mh3"><div class="module-header-left"><span class="module-num">Module 3 of 3</span><span class="module-title-bar">What Would You Do?</span></div><span class="module-status-badge badge-active" id="badge3">In progress</span></div>
+    <div class="slide-card" style="display:none" id="sc3content">
+      <div class="slide-header"><div class="slide-icon icon-blue">🔀</div><div class="slide-header-text"><span class="slide-tag">Scenario · Allyship in Action</span><h3>The Idea That Became Someone Else's Idea</h3></div></div>
+      <div class="slide-body">
+        <div class="vignette-box">
+          <div class="vignette-header"><span>📖</span><span>Scenario: Faculty Research Strategy Meeting</span></div>
+          <div class="vignette-body">
+            <p>You are in a faculty research strategy meeting. Dr Kwame, a recently arrived early-career researcher from Ghana, has been quiet throughout — he has mentioned privately that he finds the meeting culture here "very different." During a fast-moving conversation about a new interdisciplinary cluster, Kwame raises his hand and proposes that the cluster explicitly partner with African academic institutions to create a genuinely bidirectional knowledge exchange.</p>
+            <p>His proposal is met with polite nods, then the conversation continues without engaging it. Three minutes later, a senior professor says: "What if we thought about some kind of international partnership — with African institutions, say?" The room lights up. "Great idea," says the Chair. "Could you develop a proposal?" You are sitting next to Kwame, who says nothing and folds his notepad closed.</p>
+            <div class="vignette-question">💬 What do you do in this moment?</div>
+            <div class="vignette-options" id="vignette1">
+              <div class="vignette-option" onclick="selectOption(this,'vignette1','A')"><div class="opt-letter">A</div><div class="opt-text">This happens — ideas often land differently based on timing and how they're expressed. It's awkward but not worth intervening now; speak to the Chair afterwards.</div></div>
+              <div class="vignette-option" onclick="selectOption(this,'vignette1','B')"><div class="opt-letter">B</div><div class="opt-text">Intervene immediately — clearly, calmly, and specifically: "I think Kwame proposed exactly this idea about three minutes ago — Kwame, would you like to be the one to develop that proposal?"</div></div>
+              <div class="vignette-option" onclick="selectOption(this,'vignette1','C')"><div class="opt-letter">C</div><div class="opt-text">Check in with Kwame after the meeting to acknowledge what happened and offer support. The moment has passed; intervening now would be disruptive.</div></div>
+              <div class="vignette-option" onclick="selectOption(this,'vignette1','D')"><div class="opt-letter">D</div><div class="opt-text">The professor may not have heard Kwame — it might have been an honest oversight. Assume good faith and let it go.</div></div>
+            </div>
+            <div class="vignette-feedback feedback-good" id="vignette1-feedback-B"><strong>Yes — the moment requires an immediate, specific response.</strong> What Kwame experienced is "idea appropriation" — which disproportionately affects people with lower institutional status and those from underrepresented backgrounds. An immediate, calm, specific intervention — naming Kwame, naming the original idea, redirecting the opportunity — is the mattering-conscious response. It is not accusatory. It is witnessing. Waiting teaches Kwame that his voice carries no weight in this room.</div>
+            <div class="vignette-feedback feedback-consider" id="vignette1-feedback-A"><strong>Worth reconsidering.</strong> "Speaking to the Chair afterwards" is a deferred, private response to a public wrong. The mattering violation happened publicly; the acknowledgement also needs to be visible. Deferring also allows the record to stand — the Chair approved the senior professor's version, not Kwame's. That record matters for future credit.</div>
+            <div class="vignette-feedback feedback-consider" id="vignette1-feedback-C"><strong>Partly right — but incomplete.</strong> Checking in with Kwame privately is compassionate and important. But it does not correct the public record. An in-the-room intervention tells the room what happened. If you can only do one, do the in-the-room intervention first.</div>
+            <div class="vignette-feedback feedback-consider" id="vignette1-feedback-D"><strong>Worth reconsidering.</strong> Good faith is worth extending — it may well have been unconscious. But the effect on Kwame is identical whether the intent was conscious or not. "I think that was Kwame's idea" is not an accusation — it is a correction. It can be offered with warmth and still be said.</div>
+          </div>
+        </div>
+        <div class="reflection-box">
+          <div class="reflection-label"><span>Final Reflection — tick to confirm engagement</span></div>
+          <div class="reflection-item" onclick="toggleCheck(this,'m3')"><div class="ref-check" id="r3_1"></div><div class="ref-text">I have read the scenario, selected a response, and read the feedback.</div></div>
+          <div class="reflection-item" onclick="toggleCheck(this,'m3')"><div class="ref-check" id="r3_2"></div><div class="ref-text">I can think of a situation where I witnessed — or could have witnessed — a colleague whose contribution was overlooked or credited to someone else.</div></div>
+          <div class="reflection-item" onclick="toggleCheck(this,'m3')"><div class="ref-check" id="r3_3"></div><div class="ref-text">I understand that mattering is not distributed equally — and I have identified one thing I can do this week to actively notice someone who may be experiencing a mattering deficit.</div></div>
+        </div>
+        <div class="definition-box"><div class="def-label">Key Takeaway · Week 4</div><p class="def-text">Mattering is not distributed equally. Those with less institutional power, those navigating cultural difference, those in lower-status roles — all are at greater risk of invisibility. A mattering-conscious team notices this asymmetry and actively works against it, in real time, in the room.</p></div>
+        <div class="spacer-sm"></div>
+        <div><span class="tag-pill">Equity</span><span class="tag-pill">Allyship</span><span class="tag-pill">Belonging</span><span class="tag-pill">Week 4</span></div>
+      </div>
+    </div>
+    <div class="complete-section" style="display:none" id="cs3">
+      <p class="progress-hint" id="hint3">Tick all three reflections to complete <strong>Week 4</strong></p>
+      <div class="progress-bar-outer"><div class="progress-bar-fill" id="prog3" style="width:0%"></div></div>
+      <button class="complete-btn" id="btn3" onclick="completeModule(3)">🎉 &nbsp; Complete Week 4</button>
+    </div>
+    <div class="completion-banner hidden" id="done3">🎉 &nbsp; Week 4 complete! Watch out for Week 5 in your inbox next week.</div>
+  </div>
+
+  <div class="week-complete-card" id="weekComplete">
+    <h2>Week 4 Complete</h2>
+    <p>You've explored how mattering is not distributed equally — and what active, in-the-moment allyship looks like. Next week we look at how to embed mattering into institutional structures, not just individual interactions.</p>
+    <div class="next-badge">📬 Week 5 arrives in your inbox next week</div>
+  </div>
+
+</main>
+<footer class="campaign-footer">
+  <p><strong>Mattering at Work</strong> · 6-Week Campaign · College of Medical, Veterinary &amp; Life Sciences, University of Glasgow</p>
+  <p style="margin-top:6px;">College of Medical, Veterinary &amp; Life Sciences — Staff Wellbeing Initiative</p>
+  <p style="margin-top:4px;font-size:12px;">Based on Zach Mercurio's <em>The Power of Mattering</em> (2024)</p>
+
+  <div style="text-align:center;padding:16px 20px 0;border-top:1px solid rgba(255,255,255,0.08);margin-top:16px;">
+    <button onclick="resetProgress()" style="background:none;border:none;color:rgba(255,255,255,0.3);font-size:12px;cursor:pointer;font-family:'Source Sans 3',sans-serif;text-decoration:underline;padding:4px 8px;transition:color 0.2s;" onmouseover="this.style.color='rgba(255,255,255,0.6)'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">&#8635; Reset my progress</button>
+  </div>
+</footer><script>
+  const STORAGE_KEY='mattering_w4';
+  let checks={m1:[false,false,false],m2:[false,false,false],m3:[false,false,false]};
+  let completed={1:false,2:false,3:false};
+  function loadState(){try{const s=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');if(s.checks)checks=s.checks;if(s.completed)completed=s.completed;}catch(e){}}
+  function saveState(){localStorage.setItem(STORAGE_KEY,JSON.stringify({checks,completed}));}
+  function applyState(){
+    ['m1','m2','m3'].forEach((mk,mi)=>{const n=mi+1;checks[mk].forEach((v,i)=>{const el=document.getElementById('r'+n+'_'+(i+1));if(el&&v){el.classList.add('checked');el.textContent='✓';}});updateProgress(n);});
+    if(completed[1]){markDone(1,false);if(completed[2]){unlockModule(2,false);markDone(2,false);if(completed[3]){unlockModule(3,false);markDone(3,false);showWeekComplete(false);}else{unlockModule(3,false);}}else{unlockModule(2,false);}}
+  }
+  function toggleCheck(row,mk){
+    const check=row.querySelector('.ref-check');const isChecked=check.classList.toggle('checked');check.textContent=isChecked?'✓':'';
+    const allItems=row.parentElement.querySelectorAll('.reflection-item');const idx=Array.from(allItems).indexOf(row);const n=parseInt(mk.replace('m',''));
+    checks[mk][idx]=isChecked;saveState();updateProgress(n);
+  }
+  function updateProgress(n){
+    const mk='m'+n;const done=checks[mk].filter(Boolean).length;const total=checks[mk].length;const pct=Math.round((done/total)*100);
+    const prog=document.getElementById('prog'+n);const btn=document.getElementById('btn'+n);const hint=document.getElementById('hint'+n);
+    if(prog)prog.style.width=pct+'%';
+    if(btn){if(done===total){btn.classList.add('ready');if(hint)hint.innerHTML='<strong>All done!</strong> Click below to continue.';}else{btn.classList.remove('ready');if(hint){const r=total-done;const nxt=n<3?'Module '+(n+1):'Week 4';hint.innerHTML=`Reflect on <strong>${r} more question${r>1?'s':''}</strong> to unlock <strong>${nxt}</strong>`;}}}
+  }
+  function completeModule(n){const mk='m'+n;if(!checks[mk].every(Boolean))return;completed[n]=true;saveState();markDone(n,true);if(n<3){setTimeout(()=>unlockModule(n+1,true),300);}else{setTimeout(()=>showWeekComplete(true),300);}}
+  function markDone(n,animate){
+    const mod=document.getElementById('module'+n);const cs=document.getElementById('cs'+n);const done=document.getElementById('done'+n);const badge=document.getElementById('badge'+n);const sc=document.getElementById('sc'+n);const sl=document.getElementById('sl'+n);
+    mod.classList.add('completed');if(cs)cs.style.display='none';if(done)done.classList.remove('hidden');if(badge){badge.textContent='✓ Complete';badge.className='module-status-badge badge-done';}
+    if(sc){sc.textContent='✓';sc.className='step-circle done';}if(sl){sl.textContent='Module '+n;sl.className='step-label done';}
+    const line=document.getElementById('line'+n);if(line)line.classList.add('done');
+  }
+  function unlockModule(n,animate){
+    const mod=document.getElementById('module'+n);const mh=document.getElementById('mh'+n);const content=document.getElementById('sc'+n+'content');const cs=document.getElementById('cs'+n);const sc=document.getElementById('sc'+n);const sl=document.getElementById('sl'+n);
+    mod.classList.remove('locked');mod.classList.add('unlocked');if(mh)mh.style.display='flex';if(content)content.style.display='block';if(cs)cs.style.display='flex';
+    if(sc){sc.textContent=n;sc.className='step-circle active';}if(sl){sl.textContent='Module '+n;sl.className='step-label active';}
+    if(animate){mod.classList.add('just-unlocked');setTimeout(()=>mod.classList.remove('just-unlocked'),1000);mod.scrollIntoView({behavior:'smooth',block:'start'});}
+  }
+  function showWeekComplete(animate){const card=document.getElementById('weekComplete');card.classList.add('show');if(animate)card.scrollIntoView({behavior:'smooth',block:'start'});}
+  function selectOption(el,vid,letter){const c=document.getElementById(vid);c.querySelectorAll('.vignette-option').forEach(o=>o.classList.remove('selected'));el.classList.add('selected');c.querySelectorAll('.vignette-feedback').forEach(f=>f.classList.remove('show'));const fb=document.getElementById(vid+'-feedback-'+letter);if(fb)fb.classList.add('show');}
+  function togglePledge(el){el.classList.toggle('checked');el.textContent=el.classList.contains('checked')?'✓':'';}
+  loadState();applyState();updateProgress(1);
+  function resetProgress(){if(confirm('This will clear all your saved progress for this week and start fresh. Are you sure?')){localStorage.removeItem('mattering_w4');location.reload();}}
+</script>
+</body>
+</html>
